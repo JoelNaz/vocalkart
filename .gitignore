@@ -1,0 +1,9 @@
+# .gitignore
+
+# Ignore node_modules for the backend
+
+
+# Ignore node_modules for the frontend
+/vocalcart_fe/node_modules
+
+# Other rules...
