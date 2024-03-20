@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ContinuousSpeechRecognition from '../components/SpeechRecognition';
+import ContinuousSpeechRecognition from '../components/SpeechRecognition'; // Assuming this is the correct path
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
@@ -23,26 +23,6 @@ const Home = () => {
         setCurrentUser(null);
       });
   }, []);
-
-  useEffect(() => {
-    // Start processing voice commands only after the trigger phrase
-    if (transcript.toLowerCase().includes('hey vocal search query')) {
-      // Extract the search query from the transcript
-      const searchQueryCommand = /hey vocal search query (.+)/i;
-      const match = transcript.match(searchQueryCommand);
-      if (match) {
-        const query = match[1].trim();
-        // Handle the search query (e.g., send a request to your backend)
-        handleSearch(query);
-
-        // Reset the transcript after processing the command
-        setTranscript('');
-
-        // Stop listening after processing the command
-        setListening(false);
-      }
-    }
-  }, [transcript]);
 
   const handleSearch = async (query) => {
     console.log('Handling search query:', query);
@@ -120,11 +100,10 @@ const Home = () => {
       {/* ... Other components and links ... */}
 
       <ContinuousSpeechRecognition
-        onSearch={() => {}}
+        onSearch={handleSearch}
         onStop={handleStop}
         onReset={handleReset}
         setTranscript={setTranscript} // Pass the setTranscript function
-        listening={listening}
       />
 
       {currentUser && (
