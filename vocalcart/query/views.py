@@ -19,7 +19,9 @@ import httpx
 from bs4 import BeautifulSoup
 from django.http import JsonResponse
 import json
+from crawlbase import CrawlingAPI
 import time
+import re
 
 
 UserModel = get_user_model()
@@ -148,8 +150,12 @@ class SearchAmazonView(View):
             print("Error:", str(e))
             return JsonResponse({'error': str(e)}, status=500)
         
+        
+        
+        
+        
 @method_decorator(csrf_exempt, name='dispatch')       
-class SearchFlipkartView(View):
+class oldSearchFlipkartView(View):
     def post(self, request, *args, **kwargs):
         try:
             # Parse JSON data from the request body
@@ -211,3 +217,70 @@ class SearchFlipkartView(View):
         ]
 
         return flipkart_results
+    
+    
+    
+@method_decorator(csrf_exempt, name='dispatch')       
+class SearchFlipkartView(View):
+    def post(self, request):
+        request_data = json.loads(request.body.decode('utf-8'))
+
+            # Get the search query from the request payload
+        search_query = request_data.get('query') # Default query is 'laptop' if not provided in request
+        print(search_query)
+        url = f"https://www.flipkart.com/search?q={search_query}"
+        html_content = self.fetch_page_html(url)
+
+        if html_content:
+            products_data = self.extract_products_info(html_content)
+            print(products_data)
+            return JsonResponse(products_data, safe=False)
+        else:
+            return JsonResponse({'error': 'Failed to fetch HTML content from the URL.'}, status=500)
+
+    def fetch_page_html(self, url):
+        API_TOKEN = '4ifmqrQm7vvcLzgAyRRN5g'
+        crawling_api = CrawlingAPI({'token': API_TOKEN})
+        response = crawling_api.get(url)
+        if response['status_code'] == 200:
+            return response['body'].decode('latin1')
+        else:
+            print(f"Request failed with status code {response['status_code']}: {response['body']}")
+            return None
+
+    def extract_products_info(self, html_content):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        
+        titles = []
+        ratings = []
+        prices = []
+        image_urls = []
+        product_listings = soup.select('div#container > div:first-child > div:nth-child(3) > div:first-child > div:nth-child(2) div[data-id]')  # Adjust selector as per the webpage structure
+
+        for product in product_listings:
+            title_element = product.select_one('a[title]')
+            rating_element = product.select_one('span[id^="productRating"] > div')
+            price_element = product.select_one('a._8VNy32 > div > div:first-child')
+            image_element = product.select_one('img')
+
+            if title_element and rating_element and price_element and image_element:
+                titles.append(title_element['title'].strip())
+                ratings.append(rating_element.text.strip())
+                # Extract price without decoding
+                price_str = price_element.text.strip()
+                price = re.sub(r'\D', '', price_str)
+                prices.append(price)
+                image_urls.append(image_element['src'])
+
+        # Combine the data into a list of dictionaries
+        products_data = [
+            {
+                'title': title,
+                'rating': rating,
+                'price': price,
+                'image_url': image_url
+            }
+            for title, rating, price, image_url in zip(titles, ratings, prices, image_urls)
+        ]
+
+        return products_data
