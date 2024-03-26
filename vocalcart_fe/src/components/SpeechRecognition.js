@@ -40,15 +40,33 @@ const ContinuousSpeechRecognition = ({ onSearch, onStop, onReset, setTranscript 
   };
 
   return (
+
     <div>
-      <h1>Continuous Speech Recognition</h1>
+      <h1 className='text-xl'>Continuous Speech Recognition</h1>
       <p>Transcript: {transcript}</p>
-      <button onClick={isListening ? handleStopListening : handleStartListening}>
+      {/* <button onClick={isListening ? handleStopListening : handleStartListening}>
         {isListening ? 'Stop' : 'Start'}
-      </button>
-      <button onClick={handleReset} disabled={!isListening}>
+      </button> */}
+      {/* <button onClick={handleReset} disabled={!isListening}>
         Reset
-      </button>
+      </button> */}
+    
+    <div className="mt-10 flex items-center justify-center gap-x-2">
+              <button
+                type="button"
+                onClick={isListening ? handleStopListening : handleStartListening}
+                className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                {isListening ? 'Stop' : 'Start'}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset} disabled={!isListening}
+                className="rounded-md border border-black px-4 py-2 text-sm font-semibold text-black shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                Reset
+              </button>
+      </div>
     </div>
   );
 };

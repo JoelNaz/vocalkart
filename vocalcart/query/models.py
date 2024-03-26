@@ -50,3 +50,12 @@ class BlacklistedToken(models.Model):
     @classmethod
     def blacklist_token(cls, token):
         cls.objects.create(token=token)
+
+
+class SearchQuery(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    query = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.query} ({self.created_at})"

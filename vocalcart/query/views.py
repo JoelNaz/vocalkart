@@ -1,4 +1,5 @@
 # yourappname/views.py
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -12,7 +13,8 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import logout
 from django.views import View
-from .models import BlacklistedToken 
+from django.contrib.auth.decorators import login_required
+from .models import BlacklistedToken ,SearchQuery
 import requests
 from asgiref.sync import sync_to_async
 import httpx
@@ -84,7 +86,6 @@ class LogoutView(APIView):
             print(f"Exception: {e}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
  
- 
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchAmazonView(View):
     def post(self, request, *args, **kwargs):
@@ -95,10 +96,23 @@ class SearchAmazonView(View):
             # Get the search query from the request payload
             search_query = request_data.get('query')
 
+            print("Search Query:", search_query)  # Print the search query
+
+            if request.user.is_authenticated:
+                print("User is authenticated:", request.user)  # Print the authenticated user
+
+                # Save the search query in the database
+                SearchQuery.objects.create(user=request.user, query=search_query)
+                print("Search query saved in the database")  # Print a message indicating successful save
+            else:
+                # User is not authenticated, handle the case accordingly
+                print("User is not authenticated") 
+
             # Construct the Amazon search URL
             base_url = "https://www.amazon.in"
             search_url = f"{base_url}/s?k={search_query}"
-            print("Search Query:", search_query)
+
+            print("Search URL:", search_url)  # Print the constructed search URL
 
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -107,7 +121,6 @@ class SearchAmazonView(View):
             max_retries = 100
             retry_delay = 0.000000001
 
-            print(search_url)
             for _ in range(max_retries):
                 response = requests.get(search_url, headers=headers)
 
@@ -117,7 +130,8 @@ class SearchAmazonView(View):
                     print(f"Retrying... Status Code: {response.status_code}")
                     time.sleep(retry_delay)  # Wait for a short duration before retrying
 
-            print(response)
+            print("Response:", response)  # Print the response object
+
             products = []
 
             if response.status_code == 200:
@@ -141,16 +155,15 @@ class SearchAmazonView(View):
                         }
                         products.append(product_info)
 
+            print("Results:", products)  # Print the extracted products
+
             # Return the results as JSON
-            print("Results:", products)
             return JsonResponse({'results': products})
 
         except Exception as e:
             # Handle exceptions and return an error response
             print("Error:", str(e))
             return JsonResponse({'error': str(e)}, status=500)
-        
-        
         
         
         
@@ -284,3 +297,24 @@ class SearchFlipkartView(View):
         ]
 
         return products_data
+
+
+
+class CheckAuthView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # If the code execution reaches here, it means the user is authenticated
+            user_data = {
+                'username': request.user.username,
+                'email': request.user.email,
+                # Add any other user details you want to include
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            # Token authentication failed
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            # Other unexpected errors
+            return Response({'error': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
