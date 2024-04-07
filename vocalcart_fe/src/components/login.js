@@ -14,7 +14,8 @@ const Login = () => {
             });
 
             // Assuming the token is returned in the 'refresh_token' field
-            const token = response.data.refresh_token;
+            const token = response.data.token;
+            console.log(token)
 
             // Store the token in localStorage
             localStorage.setItem('token', token);

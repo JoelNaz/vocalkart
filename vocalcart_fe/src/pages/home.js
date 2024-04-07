@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
 axios.defaults.xsrfCookieName = 'csrftoken';
 
+
 const Home = () => {
   const [transcript, setTranscript] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
@@ -13,12 +14,14 @@ const Home = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [listening, setListening] = useState(false);
   const [searchInitiated, setSearchInitiated] = useState(false);
+  const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+  console.log(token)
 
   useEffect(() => {
     // Fetch user details or check authentication status
     const fetchUserDetails = async () => {
       try {
-        const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+        
         if (!token) {
           throw new Error('Token not found in localStorage');
         }
@@ -27,8 +30,10 @@ const Home = () => {
           headers: {
             Authorization: `Bearer ${token}` // Attach the token in the Authorization header
           }
+          
         });
         console.log(response.data);
+        
         setCurrentUser(response.data.username);
       } catch (error) {
         console.error('Error fetching user details:', error.message);
@@ -50,8 +55,16 @@ const Home = () => {
     try {
       // Make requests to both Amazon and Flipkart
       const [amazonResponse, flipkartResponse] = await Promise.all([
-        axios.post('http://127.0.0.1:8000/query/search_query_amazon/', { query }),
-        axios.post('http://127.0.0.1:8000/query/search_query_flipkart/', { query }),
+        axios.post(
+          'http://127.0.0.1:8000/query/search_query_amazon/',
+          {query},
+          {
+              headers: {
+                  Authorization: `Bearer ${token}` // Attach the token in the Authorization header
+              }
+          }
+      ),
+      //axios.post('http://127.0.0.1:8000/query/search_query_flipkart/', { query }),
       ]);
   
       // Extract results from both responses

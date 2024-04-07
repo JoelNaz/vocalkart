@@ -1,5 +1,6 @@
 # yourappname/views.py
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -10,7 +11,10 @@ from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth import authenticate
 from django.contrib.auth import logout
 from django.views import View
 from django.contrib.auth.decorators import login_required
@@ -24,6 +28,11 @@ import json
 from crawlbase import CrawlingAPI
 import time
 import re
+import logging
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
+
+logger = logging.getLogger(__name__)
 
 
 UserModel = get_user_model()
@@ -43,23 +52,25 @@ class UserDetails(APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-class UserLogin(TokenObtainPairView):
-    serializer_class = UserLoginSerializer
+class UserLogin(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            # Successfully logged in, add additional information if needed
-            user = UserModel.objects.get(email=request.data['email'])
-            response.data['user_id'] = user.id
-            user_serializer = UserSerializer(user)
+        # Authenticate user
+        user = authenticate(request, email=email, password=password)
+
+        if user is not None:
+            # Generate JWT token
             refresh = RefreshToken.for_user(user)
-            response.data['refresh_token'] = str(refresh)
-            response.data['user'] = user_serializer.data
+            token = str(refresh.access_token)
 
-        #print("Response data:", response.data)  # Add this line
-
-        return response
+            return Response({'token': token}, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+        
     
 class LogoutView(APIView):
     permission_classes = [AllowAny]
@@ -71,37 +82,39 @@ class LogoutView(APIView):
             if not refresh_token:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-                # Check if the token is already blacklisted
-                if not BlacklistedToken.is_token_blacklisted(refresh_token):
-                    # Blacklist the refresh token
-                    BlacklistedToken.blacklist_token(refresh_token)
+            # Blacklist the refresh token
+            BlacklistedToken.blacklist_token(refresh_token)
 
-                return Response(status=status.HTTP_200_OK)
-            except TokenError as e:
-                print(f"TokenError: {e}")
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_204_NO_CONTENT)
 
         except Exception as e:
-            print(f"Exception: {e}")
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            # Log the exception for further investigation
+            logger.error(f"Exception during logout: {e}")
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
  
 @method_decorator(csrf_exempt, name='dispatch')
 class SearchAmazonView(View):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, *args, **kwargs):
         try:
+            token = request.headers.get('Authorization').split(' ')[1]
+            print(token)
             # Parse JSON data from the request body
             request_data = json.loads(request.body.decode('utf-8'))
 
             # Get the search query from the request payload
             search_query = request_data.get('query')
+            
 
             print("Search Query:", search_query)  # Print the search query
 
-            if request.user.is_authenticated:
+            if request.user.is_authenticated:  # Ensure user is authenticated
                 print("User is authenticated:", request.user)  # Print the authenticated user
 
-                # Save the search query in the database
+                # Save the search query in the database with the authenticated user
                 SearchQuery.objects.create(user=request.user, query=search_query)
                 print("Search query saved in the database")  # Print a message indicating successful save
             else:
@@ -304,17 +317,15 @@ class CheckAuthView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            # If the code execution reaches here, it means the user is authenticated
-            user_data = {
-                'username': request.user.username,
-                'email': request.user.email,
-                # Add any other user details you want to include
-            }
-            return Response(user_data, status=status.HTTP_200_OK)
-        except AuthenticationFailed as e:
-            # Token authentication failed
-            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-        except Exception as e:
-            # Other unexpected errors
-            return Response({'error': 'Internal Server Error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        token = request.headers.get('Authorization').split(' ')[1]
+        print(token)
+        if request.user.is_authenticated:
+            print("Check Auth User Authenticated")
+            
+        user = request.user
+        user_data = {
+            'username': user.username,
+            'email': user.email,
+            # Add any other user details you want to include
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
