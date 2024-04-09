@@ -1,7 +1,11 @@
 import React from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import {useNavigate } from 'react-router-dom';
+
 
 const Logout = () => {
+    const navigate=useNavigate()
     const handleLogout = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -15,10 +19,13 @@ const Logout = () => {
             console.log(response.data);
             localStorage.removeItem('token');
             console.log('Logout successful!');
+            navigate('/')
+            toast.success("Logout successfully!");
             
             // Redirect to the login page or handle navigation as needed
         } catch (error) {
             console.error('Error during logout:', error.message);
+            toast.error("An error occurred during sign-in. Please try again.");
             // Handle logout error
         }
     };
