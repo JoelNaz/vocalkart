@@ -118,13 +118,13 @@ class SearchAmazonView(View):
             
 
             print("Search Query:", search_query)  # Print the search query
-
+            if user_email:
             # Find the user based on the provided email
-            user = UserModel.objects.get(email=user_email)
+                user = UserModel.objects.get(email=user_email)
 
-            # Save the search query along with the user who made it
-            search_query_obj = SearchQuery.objects.create(user=user, query=search_query)
-            search_query_obj.save()
+                # Save the search query along with the user who made it
+                search_query_obj = SearchQuery.objects.create(user=user, query=search_query)
+                search_query_obj.save()
 
             # Construct the Amazon search URL
             base_url = "https://www.amazon.in"

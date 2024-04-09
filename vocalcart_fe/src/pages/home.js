@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ContinuousSpeechRecognition from '../components/SpeechRecognition'; // Assuming this is the correct path
 import Navbar from '../components/Navbar';
+import handleFilter from '../components/VoiceCommands';
 //import handleVoiceCommand from '../components/VoiceCommands';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -64,47 +65,48 @@ const Home = () => {
   
     try {
       const [amazonResponse, flipkartResponse] = await Promise.all([
-          axios.post(
-              'http://127.0.0.1:8000/query/search_query_amazon/',
-              { query, currentUserEmail },
-              {
-                  headers: {
-                      Authorization: `Bearer ${token}`
-                  }
-              }
-          ),
-          axios.post(
-              'http://127.0.0.1:8000/query/search_query_flipkart/',
-              { query }
-          ),
+        axios.post(
+          'http://127.0.0.1:8000/query/search_query_amazon/',
+          { query, currentUserEmail },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        ),
+        //axios.post(
+          //'http://127.0.0.1:8000/query/search_query_flipkart/',
+          //{ query }
+        //).catch(error => {
+          //console.error('Error fetching Flipkart results:', error.message);
+          //return { data: { results: [] } }; // Return empty results if there's an error
+        //}),
       ]);
   
       const amazonResults = amazonResponse.data.results || [];
-      const flipkartResults = flipkartResponse.data.results || [];
+      const flipkartResults = (flipkartResponse && flipkartResponse.data.results) || []; // Check if flipkartResponse exists
   
       let combinedResults = [];
   
       if (amazonResults.length > 0) {
-          combinedResults = [...amazonResults];
+        combinedResults = [...amazonResults];
       }
   
-      if (flipkartResponse.status === 200) {
-          combinedResults = [...combinedResults, ...flipkartResults];
-      } else {
-          console.error('Error fetching Flipkart results:', flipkartResponse.statusText);
+      if (flipkartResults.length > 0) { // Check if flipkartResults is available
+        combinedResults = [...combinedResults, ...flipkartResults];
       }
   
       const sortedResults = combinedResults.sort((a, b) => {
-          const ratingA = parseFloat(a.rating.split(' ')[0]);
-          const ratingB = parseFloat(b.rating.split(' ')[0]);
-          return ratingB - ratingA;
+        const ratingA = parseFloat(a.rating.split(' ')[0]);
+        const ratingB = parseFloat(b.rating.split(' ')[0]);
+        return ratingB - ratingA;
       });
   
       setSearchResults(sortedResults);
-  } catch (error) {
+    } catch (error) {
       console.error('Error fetching search results:', error);
+    }
   }
-}
 
 
 useEffect(() => {
@@ -260,6 +262,47 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
     // Clean up the timeout on component unmount or when transcript changes
     return () => clearTimeout(timeoutId);
   }, [transcript, searchInitiated]);
+
+
+  useEffect(() => {
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('filter by')) {
+      console.log('Filter command detected:', transcript);
+      const commandMatch = transcript.match(/filter by (price|rating)/i);
+      if (commandMatch) {
+        const filterType = commandMatch[1].toLowerCase();
+        console.log('Filter type detected:', filterType);
+        
+        // Call the function to handle the filter by price or filter by rating command
+        const handleFilterByType = async () => {
+          try {
+            // Perform the filter operation only if it hasn't been initiated yet
+            if (!searchInitiated) {
+              setSearchInitiated(true); // Set searchInitiated to true to prevent further filter calls
+              const filteredResults = await handleFilter(filterType, searchResults, sortedRecommendations);
+              console.log(`Filtered by ${filterType} results:`, filteredResults);
+              // Update the state with the filtered results
+              if (filterType === 'price') {
+                setSearchResults(filteredResults);
+              } else if (filterType === 'rating') {
+                setSortedRecommendations(filteredResults);
+              }
+            }
+          } catch (error) {
+            console.error(`Error filtering by ${filterType}:`, error);
+          }
+        };
+        
+        handleFilterByType();
+
+        // Reset the transcript after processing the command
+        setTranscript('');
+
+        // Stop listening after processing the command
+        setListening(false);
+      }
+    }
+  }, [transcript, searchResults, sortedRecommendations, searchInitiated]);
   
   useEffect(() => {
     // Start processing voice commands only after the trigger phrase
