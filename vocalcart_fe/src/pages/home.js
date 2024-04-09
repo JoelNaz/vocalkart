@@ -204,36 +204,10 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full h-screen bg-cover bg-center opacity-85" style={{backgroundImage: `url('https://images.unsplash.com/photo-1605902711622-cfb43c4437b5?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`}}>
     <Navbar />
-    <div className="relative isolate z-0 bg-white px-6 pt-10 lg:px-8">
-        <div className="relative mx-auto max-w-2xl py-24">
-          <div className="absolute inset-x-0 -top-[4rem] -z-10 transform-gpu overflow-hidden blur-3xl md:-top-[10rem]">
-            <svg
-              className="relative left-[calc(50%-11rem)] -z-10 h-[21.1875rem] max-w-none -translate-x-1/2 rotate-[30deg] sm:left-[calc(50%-30rem)] sm:h-[42.375rem]"
-              viewBox="0 0 1155 678"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill="url(#45de2b6b-92d5-4d68-a6a0-9b9b2abad533)"
-                fillOpacity=".3"
-                d="M317.219 518.975L203.852 678 0 438.341l317.219 80.634 204.172-286.402c1.307 132.337 45.083 346.658 209.733 145.248C936.936 126.058 882.053-94.234 1031.02 41.331c119.18 108.451 130.68 295.337 121.53 375.223L855 299l21.173 362.054-558.954-142.079z"
-              />
-              <defs>
-                <linearGradient
-                  id="45de2b6b-92d5-4d68-a6a0-9b9b2abad533"
-                  x1="1155.49"
-                  x2="-78.208"
-                  y1=".177"
-                  y2="474.645"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#9089FC" />
-                  <stop offset={1} stopColor="#FF80B5" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
+    <div className="relative isolate z-0 bg-transparent px-6 pt-10 lg:px-8">
+        <div className="relative mx-auto max-w-2xl py-24 mt-10 bg-white bg-opacity-90 rounded-xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
               Welcome to Your VocalCart
@@ -251,9 +225,9 @@ const Home = () => {
             </p>  
           </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+          <div className="grid grid-cols-3 gap-4 mt-40 pt-10 px-10" >
   {searchResults.map((result, index) => (
-    <div key={index} className="rounded-md border">
+    <div key={index} className="rounded-md border bg-white p-1">
       <img
         src={result.image_url}
         alt={`Product ${index}`}
@@ -262,10 +236,10 @@ const Home = () => {
       />
       <div className="p-4">
         <h1 className="text-lg font-semibold">Title: {result.title}</h1>
-        <p className="mt-3 text-sm text-gray-600">
+        <p className="mt-3 text-md text-gray-600">
           Price: {result.price}
         </p>
-        <p className="mt-3 text-sm text-gray-600">
+        <p className="mt-3 text-md text-gray-600">
           Rating: {result.rating}
         </p>
       </div>

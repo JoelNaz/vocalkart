@@ -5,15 +5,15 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 const menuItems = [
 {
     name: 'Home',
-    href: '#',
+    href: '#home',
 },
 {
     name: 'About',
-    href: '#',
+    href: '#about',
 },
 {
     name: 'Contact',
-    href: '#',
+    href: '#contact',
 },
 ]
 
@@ -26,8 +26,8 @@ const toggleMenu = () => {
 
 return (
     <nav className='z-50'>
-    <div className="w-full bg-white">
-    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+    <div className="w-full bg-transparent">
+    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <div className="inline-flex items-center space-x-2">
         <span>
             <svg
@@ -43,7 +43,7 @@ return (
             />
             </svg>
         </span>
-        <span className="font-bold">DevUI</span>
+        <span className="font-bold text-xl">VocalCart</span>
         </div>
         <div className="hidden grow items-start lg:flex">
         <ul className="ml-12 inline-flex space-x-8">
@@ -51,7 +51,7 @@ return (
             <li key={item.name}>
                 <a
                 href={item.href}
-                className="text-sm font-semibold text-gray-800 hover:text-gray-900"
+                className="text-sm font-semibold text-white hover:text-blue-600"
                 >
                 {item.name}
                 </a>
@@ -62,13 +62,13 @@ return (
         <div className="hidden space-x-2 lg:block">
                 <button
                     type="button"
-                    className="rounded-md bg-transparent px-3 py-2 text-sm font-semibold text-black hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    className="rounded-md bg-transparent px-3 py-2 text-sm  text-white  hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                     <Link to="/register">Sign Up</Link>
                 </button>
                 <button
                     type="button"
-                    className="rounded-md border border-black px-3 py-2 text-sm font-semibold text-black shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    className="rounded-md border border-black px-3 py-2 text-sm  text-white hover:bg-white/10 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                     <Link to="/login">Log In</Link>
                 </button>
@@ -77,7 +77,7 @@ return (
         <Menu onClick={toggleMenu} className="h-6 w-6 cursor-pointer" />
         </div>
         {isMenuOpen && (
-        <div className="absolute inset-x-0 top-0 z-50 origin-top-right transform p-2 transition lg:hidden">
+        <div className="absolute inset-x-0 top-0 z-50 origin-top-right transform p-2 transition lg:hidden bg">
             <div className="divide-y-2 divide-gray-50 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
             <div className="px-5 pb-6 pt-5">
                 <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ return (
                         />
                     </svg>
                     </span>
-                    <span className="font-bold">DevUI</span>
+                    <span className="font-bold">VocalCart</span>
                 </div>
                 <div className="-mr-2">
                     <button
@@ -133,7 +133,7 @@ return (
                 </button>
                 <button
                     type="button"
-                    className="w-full rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    className="w-full rounded-md bg-black px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                     <Link to="/login">Log In</Link>
                 </button>

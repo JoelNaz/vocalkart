@@ -1,30 +1,30 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import { BrowserRouter as BrowserRouterRouter, Route, Routes } from 'react-router-dom';
 import Home from './pages/home';
 import Login from './components/login'; // Create Login.js component
 import Register from './components/register'; // Create Register.js component
 import Logout from './components/logout';
+import Cart from './components/Cart';
+import { Toaster } from 'react-hot-toast';
+import SpinnerCircular from "./components/ui/SpinnerCircular";
 
 
 const App = () => {
 
-  
-
   return (
-
     
+    <Suspense fallback={<SpinnerCircular/>}>
     <BrowserRouterRouter>
-      <div className="App">
-
-
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />      
+          <Route path="/cart" element={<Cart />} />
         </Routes>
-      </div>
     </BrowserRouterRouter>
+    <Toaster />
+    </Suspense>
   );
 };
 
