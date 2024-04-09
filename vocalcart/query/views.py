@@ -101,25 +101,27 @@ class SearchAmazonView(View):
     def post(self, request, *args, **kwargs):
         try:
             token = request.headers.get('Authorization').split(' ')[1]
-            print(token)
+            #print(token)
             # Parse JSON data from the request body
             request_data = json.loads(request.body.decode('utf-8'))
 
             # Get the search query from the request payload
             search_query = request_data.get('query')
+            user_email = request_data.get('currentUserEmail')
+            print(user_email)
             
 
             print("Search Query:", search_query)  # Print the search query
 
-            if request.user.is_authenticated:  # Ensure user is authenticated
-                print("User is authenticated:", request.user)  # Print the authenticated user
 
-                # Save the search query in the database with the authenticated user
-                SearchQuery.objects.create(user=request.user, query=search_query)
-                print("Search query saved in the database")  # Print a message indicating successful save
-            else:
-                # User is not authenticated, handle the case accordingly
-                print("User is not authenticated") 
+            if user_email:
+                # Find the user based on the provided email
+                user = UserModel.objects.get(email=user_email)
+
+                # Save the search query along with the user who made it
+                search_query = SearchQuery.objects.create(user=user, query=search_query)
+                search_query.save()
+            
 
             # Construct the Amazon search URL
             base_url = "https://www.amazon.in"
@@ -179,9 +181,10 @@ class SearchAmazonView(View):
             return JsonResponse({'error': str(e)}, status=500)
         
         
-        
-@method_decorator(csrf_exempt, name='dispatch')       
-class oldSearchFlipkartView(View):
+@method_decorator(csrf_exempt, name='dispatch')
+class SearchJioMartView(View):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, *args, **kwargs):
         try:
             # Parse JSON data from the request body
@@ -190,60 +193,59 @@ class oldSearchFlipkartView(View):
             # Get the search query from the request payload
             search_query = request_data.get('query')
 
-            # Define headers for the request
+            # Construct the JioMart search URL
+            base_url = "https://www.jiomart.com"
+            search_url = f"{base_url}/search/?text={search_query}"
+
+            print("Search URL:", search_url)  # Print the constructed search URL
+
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
             }
 
-            # Call the function to scrape Flipkart search results
-            flipkart_results = self.scrape_flipkart_search_results(search_query, headers)
-            print(flipkart_results)
+            max_retries = 100
+            retry_delay = 0.000000001
+
+            for _ in range(max_retries):
+                response = requests.get(search_url, headers=headers)
+
+                if response.status_code == 200:
+                    break  # Successful response, exit the loop
+                else:
+                    print(f"Retrying... Status Code: {response.status_code}")
+                    time.sleep(retry_delay)  # Wait for a short duration before retrying
+
+            print("Response:", response)  # Print the response object
+
+            products = []
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+
+                # Extract product information
+                for product in soup.find_all("li", class_="ais-InfiniteHits-item"):
+                    title = product.find("div", class_="plp-card-details-name").text.strip()
+                    price = product.find("span", class_="jm-heading-xxs").text.strip()
+                    image_url = product.find("img", class_="lazyautosizes")["data-src"]
+                    rating = product.find("div", class_="plp-card-details-discount").text.strip()
+                    products.append({
+                        "title": title,
+                        "price": price,
+                        "image_url": image_url,
+                        "rating": rating
+                    })
+
+            print("Results:", products)  # Print the extracted products
 
             # Return the results as JSON
-            return JsonResponse({'results': flipkart_results})
+            return JsonResponse({'results': products})
 
         except Exception as e:
             # Handle exceptions and return an error response
             print("Error:", str(e))
             return JsonResponse({'error': str(e)}, status=500)
 
-    def scrape_flipkart_search_results(self, search_query, headers):
-        product_titles = []
-        product_prices = []
-        product_images = []
-        product_ratings = []
 
-        url = f"https://www.flipkart.com/search?q={search_query}"
-        page = requests.get(url, headers=headers)
-        soup = BeautifulSoup(page.content, 'html.parser')
-
-        results = soup.select('._1AtVbE')  # Adjust the selector based on the Flipkart HTML structure
-
-        for result in results:
-            title = result.select_one('._4rR01T')
-            price = result.select_one('._30jeq3._1_WHN1')  # Corrected selector
-            image = result.select_one('._396cs4')
-            rating = result.select_one('._1lRcqv')  # Selector for star rating
-
-            if title and price and image and rating:
-                product_titles.append(title.text.strip())
-                product_prices.append(price.text.strip())
-                product_images.append(image['src'] if 'src' in image.attrs else image['data-src'])
-                product_ratings.append(rating.text.strip())
-
-        # Create a list of dictionaries for each product
-        flipkart_results = [
-            {
-                'title': title,
-                'price': price,
-                'image_url': image_url,
-                'rating': rating
-            }
-            for title, price, image_url, rating in zip(product_titles, product_prices, product_images, product_ratings)
-        ]
-
-        return flipkart_results
-    
     
     
 @method_decorator(csrf_exempt, name='dispatch')       

@@ -10,6 +10,7 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 const Home = () => {
   const [transcript, setTranscript] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [listening, setListening] = useState(false);
@@ -35,6 +36,8 @@ const Home = () => {
         console.log(response.data);
         
         setCurrentUser(response.data.username);
+        setCurrentUserEmail(response.data.email)
+        
       } catch (error) {
         console.error('Error fetching user details:', error.message);
         setCurrentUser(null);
@@ -55,16 +58,16 @@ const Home = () => {
     try {
       // Make requests to both Amazon and Flipkart
       const [amazonResponse, flipkartResponse] = await Promise.all([
-        axios.post(
+        /*axios.post(
           'http://127.0.0.1:8000/query/search_query_amazon/',
-          {query},
+          {query,currentUserEmail},
           {
               headers: {
                   Authorization: `Bearer ${token}` // Attach the token in the Authorization header
               }
           }
-      ),
-      //axios.post('http://127.0.0.1:8000/query/search_query_flipkart/', { query }),
+      ),*/
+      axios.post('http://127.0.0.1:8000/query/search_query_jiomart/', { query }),
       ]);
   
       // Extract results from both responses
@@ -144,13 +147,13 @@ const Home = () => {
     let timeoutId;
     
     // Start processing voice commands only after the trigger phrase
-    if (transcript.toLowerCase().includes('hi vocal search query')) {
+    if (transcript.toLowerCase().includes('search query')) {
       // Clear previous timeout if exists
       clearTimeout(timeoutId);
   
       // Set a timeout to wait for additional speech input
       timeoutId = setTimeout(() => {
-        const searchQueryCommand = /hi vocal search query\s(.+)/i;
+        const searchQueryCommand = /search query\s(.+)/i;
         const match = transcript.match(searchQueryCommand);
         if (match && !searchInitiated) {
           const query = match[1].trim();
