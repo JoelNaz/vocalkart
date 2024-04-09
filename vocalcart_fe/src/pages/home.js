@@ -58,7 +58,7 @@ const Home = () => {
     try {
       // Make requests to both Amazon and Flipkart
       const [amazonResponse, flipkartResponse] = await Promise.all([
-        /*axios.post(
+        axios.post(
           'http://127.0.0.1:8000/query/search_query_amazon/',
           {query,currentUserEmail},
           {
@@ -66,8 +66,8 @@ const Home = () => {
                   Authorization: `Bearer ${token}` // Attach the token in the Authorization header
               }
           }
-      ),*/
-      axios.post('http://127.0.0.1:8000/query/search_query_jiomart/', { query }),
+      ),
+      axios.post('http://127.0.0.1:8000/query/search_query_flipkart/', { query }),
       ]);
   
       // Extract results from both responses
