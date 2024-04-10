@@ -22,6 +22,7 @@ const Home = () => {
   const [amazonRecommendations, setAmazonRecommendations] = useState([]);
   const [flipkartRecommendations, setFlipkartRecommendations] = useState([]);
   const [sortedRecommendations, setSortedRecommendations] = useState([]);
+  const [filteredResults, setFilteredResults] = useState([]);
 
   const token = localStorage.getItem('token'); // Retrieve the token from localStorage
   console.log(token)
@@ -263,46 +264,47 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
     return () => clearTimeout(timeoutId);
   }, [transcript, searchInitiated]);
 
-
   useEffect(() => {
     // Start processing voice commands only after the trigger phrase
-    if (transcript.toLowerCase().includes('filter by')) {
-      console.log('Filter command detected:', transcript);
-      const commandMatch = transcript.match(/filter by (price|rating)/i);
-      if (commandMatch) {
-        const filterType = commandMatch[1].toLowerCase();
-        console.log('Filter type detected:', filterType);
-        
-        // Call the function to handle the filter by price or filter by rating command
-        const handleFilterByType = async () => {
-          try {
-            // Perform the filter operation only if it hasn't been initiated yet
-            if (!searchInitiated) {
-              setSearchInitiated(true); // Set searchInitiated to true to prevent further filter calls
-              const filteredResults = await handleFilter(filterType, searchResults, sortedRecommendations);
-              console.log(`Filtered by ${filterType} results:`, filteredResults);
-              // Update the state with the filtered results
-              if (filterType === 'price') {
-                setSearchResults(filteredResults);
-              } else if (filterType === 'rating') {
-                setSortedRecommendations(filteredResults);
-              }
-            }
-          } catch (error) {
-            console.error(`Error filtering by ${filterType}:`, error);
-          }
-        };
-        
-        handleFilterByType();
-
-        // Reset the transcript after processing the command
-        setTranscript('');
-
-        // Stop listening after processing the command
-        setListening(false);
+    if (transcript.toLowerCase().includes('filter by price')) {
+      // Extract price range from transcript (assuming format: "filter by price from <min> to <max>")
+      const match = transcript.match(/filter by price from (\d+) to (\d+)/);
+      if (match) {
+        const minPrice = parseInt(match[1]);
+        const maxPrice = parseInt(match[2]);
+        filterByPrice(minPrice, maxPrice);
       }
     }
-  }, [transcript, searchResults, sortedRecommendations, searchInitiated]);
+    else if (transcript.toLowerCase().includes('filter by rating')) {
+      // Extract minimum rating from transcript (assuming format: "filter by rating <rating>")
+      const match = transcript.match(/filter by rating (\d+)/);
+      if (match) {
+        const minRating = parseInt(match[1]);
+        filterByRating(minRating);
+      }
+    }
+  }, [transcript]);
+
+  const filterByPrice = (minPrice, maxPrice) => {
+    const filtered = searchResults.filter(result => {
+      const price = parseFloat(result.price.replace(/[^\d.]/g, ''));
+      return price >= minPrice && price <= maxPrice;
+    });
+    setFilteredResults(filtered);
+  };
+
+  const filterByRating = (minRating) => {
+    const filtered = searchResults.filter(result => {
+      const rating = parseFloat(result.rating.split(' ')[0]);
+      return rating >= minRating;
+    });
+    setFilteredResults(filtered);
+  };
+
+  const resetFilters = () => {
+    setFilteredResults([]);
+  };
+  
   
   useEffect(() => {
     // Start processing voice commands only after the trigger phrase
@@ -340,8 +342,8 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
 
   return (
     <div className="relative w-full h-screen bg-cover bg-center opacity-85" style={{backgroundImage: `url('https://images.unsplash.com/photo-1605902711622-cfb43c4437b5?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`}}>
-    <Navbar />
-    <div className="relative isolate z-0 bg-transparent px-6 pt-10 lg:px-8">
+      <Navbar />
+      <div className="relative isolate z-0 bg-transparent px-6 pt-10 lg:px-8">
         <div className="relative mx-auto max-w-2xl py-24 mt-10 bg-white bg-opacity-90 rounded-xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
@@ -358,42 +360,58 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
               />
             </p>  
           </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 mt-40 pt-10 px-10" >
-  {searchResults.map((result, index) => (
-    <div key={index} className="rounded-md border bg-white p-1">
-      <img
-        src={result.image_url}
-        alt={`Product ${index}`}
-        className="h-[200px] w-full object-cover rounded-t-md"
-        style={{ objectFit: 'contain', maxHeight: '200px' }}
-      />
-      <div className="p-4">
-        <h1 className="text-lg font-semibold">Title: {result.title}</h1>
-        <p className="mt-3 text-md text-gray-600">
-          Price: {result.price}
-        </p>
-        <p className="mt-3 text-md text-gray-600">
-          Rating: {result.rating}
-        </p>
-      </div>
-    </div>
-  ))}
-</div>
-    
-       
+        </div>
+        <div className="grid grid-cols-3 gap-4 mt-40 pt-10 px-10">
+          {/* Display original search results */}
+          {searchResults.map((result, index) => (
+            <div key={index} className="rounded-md border bg-white p-1">
+              <img
+                src={result.image_url}
+                alt={`Product ${index}`}
+                className="h-[200px] w-full object-cover rounded-t-md"
+                style={{ objectFit: 'contain', maxHeight: '200px' }}
+              />
+              <div className="p-4">
+                <h1 className="text-lg font-semibold">Title: {result.title}</h1>
+                <p className="mt-3 text-md text-gray-600">
+                  Price: {result.price}
+                </p>
+                <p className="mt-3 text-md text-gray-600">
+                  Rating: {result.rating}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
   
-     <div>
-      
-
-      {/* {currentUser && ( */}
-        {/* <div> */} 
-          {/* Add additional information or actions for logged-in users if needed */}
-          {/* <p>Hello, {currentUser}!</p>
-        </div>
-        {/* Display recommendations sorted by ratings */}
+      <div>
+        {/* Display filtered results */}
         <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+          {filteredResults.map((result, index) => (
+            <div key={index} className="rounded-md border bg-white p-1">
+              <img
+                src={result.image_url}
+                alt={`Filtered Product ${index}`}
+                className="h-[200px] w-full object-cover rounded-t-md"
+                style={{ objectFit: 'contain', maxHeight: '200px' }}
+              />
+              <div className="p-4">
+                <h1 className="text-lg font-semibold">Title: {result.title}</h1>
+                <p className="mt-3 text-md text-gray-600">
+                  Price: {result.price}
+                </p>
+                <p className="mt-3 text-md text-gray-600">
+                  Rating: {result.rating}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+  
+      {/* Display recommendations sorted by ratings */}
+      <div className="grid grid-cols-3 gap-4 mt-10 px-10">
         {/* Display both sorted recommendations */}
         {sortedRecommendations && sortedRecommendations.flat().length > 0 ? (
           sortedRecommendations.flat().map((recommendation, index) => (
@@ -418,7 +436,6 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         ) : (
           <p></p>
         )}
-      </div>
       </div>
     </div>
   );
