@@ -301,8 +301,38 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         filterByRating(minRating);
        
       }
+    }else if (normalizedTranscript.includes('filter by description')) {
+      console.log('Filter by description command detected');
+      // Extract description from transcript (assuming format: "filter by {description}")
+      const match = normalizedTranscript.match(/filter by description (.+)/);
+      console.log('Match:', match); // Log the match result
+      if (match) {
+        console.log('Description match:', match[1]);
+        const description = match[1];
+        // Filter by description logic here
+        // You can call a function to handle filtering by description
+        // For example:
+        filterByDescription(description);
+      }
     }
   }, [transcript, originalResultsShown]);
+
+
+  const filterByDescription = (description) => {
+    // Normalize the description
+    const normalizedDescription = description.toLowerCase().trim();
+    
+    // Filter search results based on partial match with description
+    const filteredByDescription = searchResults.filter(result =>
+      result.title.toLowerCase().includes(normalizedDescription)
+    );
+    
+    // Display filtered results
+    setFilteredResults(filteredByDescription);
+    setOriginalResultsShown(false);
+  
+    
+  };
   
   const filterByPrice = (minPrice, maxPrice) => {
     console.log('Filtering by price:', minPrice, 'to', maxPrice);
