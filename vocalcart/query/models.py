@@ -59,3 +59,15 @@ class SearchQuery(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.query} ({self.created_at})"
+    
+
+class CartItem(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    image_src = models.CharField(max_length=100) 
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    rating = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.price} ({self.created_at})"
