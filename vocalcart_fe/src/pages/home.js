@@ -439,13 +439,13 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   useEffect(() => {
     console.log('Sorted Recommendations:', sortedRecommendations);
   }, [sortedRecommendations]);
+
+
+  
   
   useEffect(() => {
-    if ( transcript.toLowerCase().includes('select result')) {
-      // Extract the index from the transcript (assuming it contains a number)
-      // setAddCart(true)
+    if (transcript.toLowerCase().includes('select item') && !selectedItem) {
       const indexMatch = transcript.match(/\d+/);
-      console.log('Index Match:', indexMatch);
       if (indexMatch && searchResults.length > 0) {
         const index = parseInt(indexMatch[0], 10);
         if (index >= 0 && index < searchResults.length) {
@@ -460,7 +460,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         }
       }
     }
-  }, [transcript, searchResults]);
+  }, [transcript, searchResults, selectedItem]);
 
 
   const addToCart = async (selectedItem) => {

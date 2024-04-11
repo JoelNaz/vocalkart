@@ -36,7 +36,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 import numpy as np
-
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -407,11 +407,14 @@ class RecommendationView(APIView):
         return products_data
     
 
+
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class AddToCartView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request,*args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             # Extract user information from the token sent in the request header
             token = request.headers.get('Authorization').split(' ')[1]
@@ -421,16 +424,18 @@ class AddToCartView(APIView):
             current_user_email = request_data.get('current_user_email')
 
             title = request_data.get('title')
-            price = request_data.get('price')
-            image_url=request_data.get('image_url')
+            # Remove currency symbol and comma from price value
+            price_str = request_data.get('price').replace('₹', '').replace(',', '')
+            # Convert price to Decimal
+            price = Decimal(price_str)
+            image_url = request_data.get('image_url')
             rating = request_data.get('rating')
-            
             
             if current_user_email:
                 # Find the user based on the provided email
                 user = UserModel.objects.get(email=current_user_email)
                 # Create and save the CartItem
-                add_to_cart = CartItem.objects.create(user=user, title=title, image_url=image_url, price=price,rating=rating)
+                add_to_cart = CartItem.objects.create(user=user, title=title, image_src=image_url, price=price, rating=rating)
                 add_to_cart.save()
                 return Response({'message': 'Product added to cart successfully.'}, status=status.HTTP_201_CREATED)
             else:
@@ -440,7 +445,8 @@ class AddToCartView(APIView):
         except Exception as e:
             # Handle exceptions and return an error response
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
+        
 
 class RetrieveCartView(APIView):
     def get(self, request):
