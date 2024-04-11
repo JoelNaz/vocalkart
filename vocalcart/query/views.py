@@ -18,7 +18,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import logout
 from django.views import View
 from django.contrib.auth.decorators import login_required
-from .models import BlacklistedToken ,SearchQuery
+from .models import BlacklistedToken ,SearchQuery,CartItem,UserModel
 import requests
 from asgiref.sync import sync_to_async
 import httpx
@@ -405,3 +405,46 @@ class RecommendationView(APIView):
             for title, rating, price, image_url in zip(titles, ratings, prices, image_urls)
         ]
         return products_data
+    
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddToCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request,*args, **kwargs):
+        try:
+            # Extract user information from the token sent in the request header
+            token = request.headers.get('Authorization').split(' ')[1]
+            # Extract current user's email from the POST data
+            request_data = json.loads(request.body.decode('utf-8'))
+
+            current_user_email = request_data.get('current_user_email')
+
+            title = request_data.get('title')
+            price = request_data.get('price')
+            image_url=request_data.get('image_url')
+            rating = request_data.get('rating')
+            
+            
+            if current_user_email:
+                # Find the user based on the provided email
+                user = UserModel.objects.get(email=current_user_email)
+                # Create and save the CartItem
+                add_to_cart = CartItem.objects.create(user=user, title=title, image_url=image_url, price=price,rating=rating)
+                add_to_cart.save()
+                return Response({'message': 'Product added to cart successfully.'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'Current user email not provided in the request.'}, status=status.HTTP_400_BAD_REQUEST)
+        except UserModel.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Handle exceptions and return an error response
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RetrieveCartView(APIView):
+    def get(self, request):
+        user = request.user
+        cart_items = CartItem.objects.filter(user=user)
+        serializer = CartItemSerializer(cart_items, many=True)
+        return Response(serializer.data)
