@@ -23,6 +23,9 @@ const Home = () => {
   const [flipkartRecommendations, setFlipkartRecommendations] = useState([]);
   const [sortedRecommendations, setSortedRecommendations] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
+  const [originalResultsShown, setOriginalResultsShown] = useState(false);
+  
+  
   const [addCart, setAddCart] = useState(false);
 
   const token = localStorage.getItem('token'); // Retrieve the token from localStorage
@@ -267,66 +270,129 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
 
   useEffect(() => {
     // Start processing voice commands only after the trigger phrase
-    if (transcript.toLowerCase().includes('filter by price')) {
-      // Extract price range from transcript (assuming format: "filter by price from <min> to <max>")
-      const match = transcript.match(/filter by price from (\d+) to (\d+)/);
+    console.log('Transcript:', transcript);
+    const normalizedTranscript = transcript.toLowerCase();
+    console.log('Normalized Transcript:', normalizedTranscript);
+  
+    if (normalizedTranscript.includes('filter by price')) {
+      console.log('Filter by price command detected');
+      // Extract price range from transcript (assuming format: "filter by price <min> to <max>")
+      console.log('Transcript:', normalizedTranscript); // Add this line to log the transcript
+      const match = normalizedTranscript.match(/filter by price (\d+) to (\d+)/);
+      console.log('Match:', match); // Log the match result
       if (match) {
+        console.log('Price range match:', match);
         const minPrice = parseInt(match[1]);
         const maxPrice = parseInt(match[2]);
+        console.log('Min Price:', minPrice);
+        console.log('Max Price:', maxPrice);
         filterByPrice(minPrice, maxPrice);
+        
       }
-    }
-    else if (transcript.toLowerCase().includes('filter by rating')) {
+    } else if (normalizedTranscript.includes('filter by rating')) {
+      console.log('Filter by rating command detected');
       // Extract minimum rating from transcript (assuming format: "filter by rating <rating>")
-      const match = transcript.match(/filter by rating (\d+)/);
+      const match = normalizedTranscript.match(/filter by rating (\d+)/);
+      console.log('Match:', match); // Log the match result
       if (match) {
+        console.log('Rating match:', match);
         const minRating = parseInt(match[1]);
+        console.log('Min Rating:', minRating);
         filterByRating(minRating);
+       
       }
     }
-  }, [transcript]);
-
+  }, [transcript, originalResultsShown]);
+  
   const filterByPrice = (minPrice, maxPrice) => {
+    console.log('Filtering by price:', minPrice, 'to', maxPrice);
     const filtered = searchResults.filter(result => {
+      // Extract numerical price from the string and convert to float
       const price = parseFloat(result.price.replace(/[^\d.]/g, ''));
       return price >= minPrice && price <= maxPrice;
     });
-    setFilteredResults(filtered);
+    // Sort the filtered results by price
+    const sortedFiltered = filtered.sort((a, b) => {
+      const priceA = parseFloat(a.price.replace(/[^\d.]/g, ''));
+      const priceB = parseFloat(b.price.replace(/[^\d.]/g, ''));
+      return priceA - priceB;
+    });
+    console.log('Filtered results:', sortedFiltered);
+    setFilteredResults(sortedFiltered);
+    setOriginalResultsShown(false);
   };
-
+  
   const filterByRating = (minRating) => {
     const filtered = searchResults.filter(result => {
-      const rating = parseFloat(result.rating.split(' ')[0]);
+      // Extract numerical rating from the string and convert to float
+      const rating = parseFloat(result.rating.match(/(\d+(\.\d+)?)/)[0]);
       return rating >= minRating;
     });
     setFilteredResults(filtered);
+    setOriginalResultsShown(false);
   };
 
-  const resetFilters = () => {
-    setFilteredResults([]);
-  };
+  useEffect(() => {
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('show original search results') && searchResults.length > 0) {
+      console.log("Trigger phrase detected and conditions met.");
+      console.log("transcript:", transcript);
+      console.log("filteredResults:", filteredResults);
+      console.log("originalResultsShown:", originalResultsShown);
   
+      // Reset filteredResults to remove the filter
+      setFilteredResults([]);
   
-  // useEffect(() => {
-  //   // Start processing voice commands only after the trigger phrase
-  //   if (transcript.toLowerCase().includes('select result')) {
-  //     // Extract the index from the transcript (assuming it contains a number)
-  //     const indexMatch = transcript.match(/\d+/);
-  //     if (indexMatch && selectedItem !== null) {
-  //       const index = parseInt(indexMatch[0], 10);
-  //       if (index >= 0 && index < searchResults.length) {
-  //         // Speak the confirmation message
-  //         speakText(`You have selected ${searchResults[index].title}`);
+      // Set originalResultsShown to true to show the original results
+      setOriginalResultsShown(true);
+  
+      // Reset the transcript after processing the command
+      setTranscript('');
+  
+      // Stop listening after processing the command
+      setListening(false);
+    } else if (transcript.toLowerCase().includes('show filtered results') && filteredResults.length > 0) {
+      console.log("Trigger phrase detected and conditions met.");
+      console.log("transcript:", transcript);
+      console.log("filteredResults:", filteredResults);
+      console.log("originalResultsShown:", originalResultsShown);
+  
+      // Set originalResultsShown to false to show the filtered results
+      setOriginalResultsShown(false);
+  
+      // Reset the transcript after processing the command
+      setTranscript('');
+  
+      // Stop listening after processing the command
+      setListening(false);
+    } else {
+      console.log("Conditions not met.");
+      console.log("transcript:", transcript);
+      console.log("filteredResults:", filteredResults);
+      console.log("originalResultsShown:", originalResultsShown);
+    }
+  }, [transcript, filteredResults, originalResultsShown, searchResults]);
+  useEffect(() => {
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('select result')) {
+      // Extract the index from the transcript (assuming it contains a number)
+      const indexMatch = transcript.match(/\d+/);
+      if (indexMatch && selectedItem !== null) {
+        const index = parseInt(indexMatch[0], 10);
+        if (index >= 0 && index < searchResults.length) {
+          // Speak the confirmation message
+          speakText(`You have selected ${searchResults[index].title}`);
           
-  //         // Reset the transcript after processing the command
-  //         setTranscript('');
+          // Reset the transcript after processing the command
+          setTranscript('');
   
-  //         // Stop listening after processing the command
-  //         setListening(false);
-  //       }
-  //     }
-  //   }
-  // }, [transcript, selectedItem, searchResults]);
+          // Stop listening after processing the command
+          setListening(false);
+        }
+      }
+    }
+  }, [transcript, selectedItem, searchResults]);
+
 
   // Clear the transcript when the component unmounts
   useEffect(() => {
@@ -335,7 +401,10 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
     };
   }, []);
 
-
+  const resetFilters = () => {
+    setFilteredResults([]);
+  };
+  
 
   useEffect(() => {
     console.log('Sorted Recommendations:', sortedRecommendations);
@@ -415,81 +484,84 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
             </p>  
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-40 pt-10 px-10">
-          {/* Display original search results */}
-          {searchResults.map((result, index) => (
-            <div key={index} className="rounded-md border bg-white p-1">
-              <img
-                src={result.image_url}
-                alt={`Product ${index}`}
-                className="h-[200px] w-full object-cover rounded-t-md"
-                style={{ objectFit: 'contain', maxHeight: '200px' }}
-              />
-              <div className="p-4">
-                <h1 className="text-lg font-semibold">Title: {result.title}</h1>
-                <p className="mt-3 text-md text-gray-600">
-                  Price: {result.price}
-                </p>
-                <p className="mt-3 text-md text-gray-600">
-                  Rating: {result.rating}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
   
-      <div>
-        {/* Display filtered results */}
-        <div className="grid grid-cols-3 gap-4 mt-10 px-10">
-          {filteredResults.map((result, index) => (
-            <div key={index} className="rounded-md border bg-white p-1">
-              <img
-                src={result.image_url}
-                alt={`Filtered Product ${index}`}
-                className="h-[200px] w-full object-cover rounded-t-md"
-                style={{ objectFit: 'contain', maxHeight: '200px' }}
-              />
-              <div className="p-4">
-                <h1 className="text-lg font-semibold">Title: {result.title}</h1>
-                <p className="mt-3 text-md text-gray-600">
-                  Price: {result.price}
-                </p>
-                <p className="mt-3 text-md text-gray-600">
-                  Rating: {result.rating}
-                </p>
+        {/* Display filtered results if available */}
+        {filteredResults.length > 0 && (
+          <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+            {filteredResults.map((result, index) => (
+              <div key={index} className="rounded-md border bg-white p-1">
+                <img
+                  src={result.image_url}
+                  alt={`Filtered Product ${index}`}
+                  className="h-[200px] w-full object-cover rounded-t-md"
+                  style={{ objectFit: 'contain', maxHeight: '200px' }}
+                />
+                <div className="p-4">
+                  <h1 className="text-lg font-semibold">Title: {result.title}</h1>
+                  <p className="mt-3 text-md text-gray-600">
+                    Price: {result.price}
+                  </p>
+                  <p className="mt-3 text-md text-gray-600">
+                    Rating: {result.rating}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-  
-      {/* Display recommendations sorted by ratings */}
-      <div className="grid grid-cols-3 gap-4 mt-10 px-10">
-        {/* Display both sorted recommendations */}
-        {sortedRecommendations && sortedRecommendations.flat().length > 0 ? (
-          sortedRecommendations.flat().map((recommendation, index) => (
-            <div key={index} className="rounded-md border">
-              <img
-                src={recommendation.image_url}
-                alt={`Recommendation ${index}`}
-                className="h-[200px] w-full object-cover rounded-t-md"
-                style={{ objectFit: 'contain', maxHeight: '200px' }}
-              />
-              <div className="p-4">
-                <h1 className="text-lg font-semibold">Title: {recommendation.title}</h1>
-                <p className="mt-3 text-sm text-gray-600">
-                  Price: {recommendation.price}
-                </p>
-                <p className="mt-3 text-sm text-gray-600">
-                  Rating: {recommendation.rating}
-                </p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p></p>
+            ))}
+          </div>
         )}
+  
+        {/* Display search results only if filtered results are not available */}
+        {filteredResults.length === 0 && (
+          <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+            {searchResults.map((result, index) => (
+              <div key={index} className="rounded-md border bg-white p-1">
+                <img
+                  src={result.image_url}
+                  alt={`Product ${index}`}
+                  className="h-[200px] w-full object-cover rounded-t-md"
+                  style={{ objectFit: 'contain', maxHeight: '200px' }}
+                />
+                <div className="p-4">
+                  <h1 className="text-lg font-semibold">Title: {result.title}</h1>
+                  <p className="mt-3 text-md text-gray-600">
+                    Price: {result.price}
+                  </p>
+                  <p className="mt-3 text-md text-gray-600">
+                    Rating: {result.rating}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+  
+        {/* Display recommendations sorted by ratings */}
+        <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+          {/* Display both sorted recommendations */}
+          {sortedRecommendations && sortedRecommendations.flat().length > 0 ? (
+            sortedRecommendations.flat().map((recommendation, index) => (
+              <div key={index} className="rounded-md border">
+                <img
+                  src={recommendation.image_url}
+                  alt={`Recommendation ${index}`}
+                  className="h-[200px] w-full object-cover rounded-t-md"
+                  style={{ objectFit: 'contain', maxHeight: '200px' }}
+                />
+                <div className="p-4">
+                  <h1 className="text-lg font-semibold">Title: {recommendation.title}</h1>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Price: {recommendation.price}
+                  </p>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Rating: {recommendation.rating}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p></p>
+          )}
+        </div>
       </div>
     </div>
   );

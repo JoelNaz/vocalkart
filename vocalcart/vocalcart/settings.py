@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'rest_framework', 
     'query',
     'razorpay',
-    
+    ‘payments’ ,
+
 ]
 
 MIDDLEWARE = [
