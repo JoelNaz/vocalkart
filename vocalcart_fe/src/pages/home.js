@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ContinuousSpeechRecognition from '../components/SpeechRecognition'; // Assuming this is the correct path
 import Navbar from '../components/Navbar';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import handleFilter from '../components/VoiceCommands';
 //import handleVoiceCommand from '../components/VoiceCommands';
 
@@ -24,11 +26,12 @@ const Home = () => {
   const [sortedRecommendations, setSortedRecommendations] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
   const [originalResultsShown, setOriginalResultsShown] = useState(false);
-  
+  const [token, setToken] = useState(localStorage.getItem('token'));
   
   const [addCart, setAddCart] = useState(false);
+  const navigate = useNavigate();
 
-  const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+  //const token = localStorage.getItem('token'); // Retrieve the token from localStorage
   console.log(token)
 
   useEffect(() => {
@@ -437,6 +440,23 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   
 
   useEffect(() => {
+    if (transcript.toLowerCase().includes('show my collections')) {
+      if (token) {
+        navigate('/cart');
+      } else {
+        //toast.error('User not authenticated'); // Display toast error alert
+        setToken(localStorage.getItem('token'));
+      }
+  
+      setTranscript('');
+      setListening(false);
+    }
+  }, [transcript, token, navigate]);
+
+
+
+
+  useEffect(() => {
     console.log('Sorted Recommendations:', sortedRecommendations);
   }, [sortedRecommendations]);
   
@@ -463,38 +483,10 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   }, [transcript, searchResults]);
 
 
-  const addToCart = async (selectedItem) => {
-    try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/query/addtocart/',
-        {
-            // Assuming selectedItem is an object containing necessary details like id, title, price, etc.
-            // Modify this according to the structure expected by your backend
-            // For example:
-            // id: selectedItem.title,
-            title: selectedItem.title,
-            price: selectedItem.price,
-            image_url: selectedItem.image_url,
-            rating: selectedItem.rating,
-            // Add other properties as needed
-          current_user_email: currentUserEmail // Assuming currentUserEmail is the current user's email
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      console.log('Item added to cart:', response.data);
-      // Optionally, update the UI to reflect the addition to the cart
-    } catch (error) {
-      console.error('Error adding item to cart:', error);
-    }
-  };
+ 
 
 
 
-  
   
   useEffect(() => {
     if (transcript.toLowerCase().includes('select item') && !selectedItem) {

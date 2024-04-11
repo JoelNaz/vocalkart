@@ -38,6 +38,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 import numpy as np
 from decimal import Decimal
+from .serializers import CartItemSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -448,10 +449,22 @@ class AddToCartView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         
+@method_decorator(csrf_exempt, name='dispatch')
+class CartDetailsView(APIView):
+    permission_classes = [IsAuthenticated]
 
-class RetrieveCartView(APIView):
-    def get(self, request):
-        user = request.user
-        cart_items = CartItem.objects.filter(user=user)
-        serializer = CartItemSerializer(cart_items, many=True)
-        return Response(serializer.data)
+    def post(self, request, *args, **kwargs):
+        try:
+            token = request.headers.get('Authorization').split(' ')[1]
+            current_user_email = request.data.get('current_user_email')  # Retrieve user email from POST data
+
+            if current_user_email:
+                # Retrieve cart items based on the provided user email
+                cart_items = CartItem.objects.filter(user__email=current_user_email)
+                serializer = CartItemSerializer(cart_items, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Current user email not provided in the request.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Handle exceptions and return an error response
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

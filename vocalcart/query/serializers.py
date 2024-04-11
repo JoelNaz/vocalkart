@@ -2,6 +2,7 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import CartItem
 
 UserModel = get_user_model()
 
@@ -30,3 +31,11 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModel
         fields = ['id', 'email', 'username', 'number']  # Include other fields as needed
+
+
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['title', 'image_src', 'price', 'rating', 'created_at']
