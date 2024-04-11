@@ -439,6 +439,59 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   useEffect(() => {
     console.log('Sorted Recommendations:', sortedRecommendations);
   }, [sortedRecommendations]);
+  
+  useEffect(() => {
+    if ( transcript.toLowerCase().includes('select result')) {
+      // Extract the index from the transcript (assuming it contains a number)
+      // setAddCart(true)
+      const indexMatch = transcript.match(/\d+/);
+      console.log('Index Match:', indexMatch);
+      if (indexMatch && searchResults.length > 0) {
+        const index = parseInt(indexMatch[0], 10);
+        if (index >= 0 && index < searchResults.length) {
+          const selectedItem = searchResults[index];
+          setSelectedItem(selectedItem);
+          // Send the selected item to the backend to add to the cart
+          addToCart(selectedItem);
+          // Reset the transcript after processing the command
+          setTranscript('');
+          // Stop listening after processing the command
+          setListening(false);
+        }
+      }
+    }
+  }, [transcript, searchResults]);
+
+
+  const addToCart = async (selectedItem) => {
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:8000/query/addtocart/',
+        {
+            // Assuming selectedItem is an object containing necessary details like id, title, price, etc.
+            // Modify this according to the structure expected by your backend
+            // For example:
+            // id: selectedItem.title,
+            title: selectedItem.title,
+            price: selectedItem.price,
+            image_url: selectedItem.image_url,
+            rating: selectedItem.rating,
+            // Add other properties as needed
+          current_user_email: currentUserEmail // Assuming currentUserEmail is the current user's email
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      console.log('Item added to cart:', response.data);
+      // Optionally, update the UI to reflect the addition to the cart
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+    }
+  };
+
 
 
   

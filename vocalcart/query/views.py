@@ -19,6 +19,7 @@ from django.contrib.auth import logout
 from django.views import View
 from django.contrib.auth.decorators import login_required
 from .models import BlacklistedToken ,SearchQuery,CartItem,UserModel
+from .models import BlacklistedToken ,SearchQuery,CartItem,UserModel
 import requests
 from asgiref.sync import sync_to_async
 import httpx
