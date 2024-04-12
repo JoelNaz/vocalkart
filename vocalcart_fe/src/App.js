@@ -7,6 +7,8 @@ import Logout from './components/logout';
 import Cart from './components/Cart';
 import { Toaster } from 'react-hot-toast';
 import SpinnerCircular from "./components/ui/SpinnerCircular";
+import SelectChoice from './components/selectChoice';
+import PaymentComponent from './components/PaymentComponent';
 
 
 const App = () => {
@@ -21,6 +23,8 @@ const App = () => {
           <Route path="/logout" element={<Logout />} />
           <Route path="/register" element={<Register />} />      
           <Route path="/cart" element={<Cart />} />
+          <Route path="/choice" element={<SelectChoice />} />
+          <Route path="/payment" element={<PaymentComponent/>}/>
         </Routes>
     </BrowserRouterRouter>
     <Toaster />

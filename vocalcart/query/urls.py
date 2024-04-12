@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import CheckAuthView, UserRegister, UserDetails, UserLogin, LogoutView, SearchAmazonView, SearchFlipkartView,RecommendationView,AddToCartView
 from .views import CartDetailsView
+from . import views
 urlpatterns = [
     path('register/', UserRegister.as_view(), name='register'),
     path('user/', UserDetails.as_view(), name='user-details'),
@@ -13,5 +14,6 @@ urlpatterns = [
     path('check-auth/', CheckAuthView.as_view(), name='check_auth'),
     path('addtocart/', AddToCartView.as_view(), name='add_to_cart'),
     path('cartdetails/', CartDetailsView.as_view(), name='cart-details'),
-    
+    path('initiate_payment/', views.initiate_payment, name='initiate_payment'),
+    path('payment_success/', views.handle_payment_callback, name='payment_success'),
 ]

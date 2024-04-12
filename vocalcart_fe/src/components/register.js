@@ -27,7 +27,7 @@ const Register = () => {
       console.log(response.data);
       // Handle successful registration, maybe redirect to login page
       toast.success("Account created successfully!");
-      navigate("/login");
+      navigate("/choice");
     } catch (error) {
       console.error("Error during registration:", error.message);
       toast.error("Registration failed. Please try again.");
