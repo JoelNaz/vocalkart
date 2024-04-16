@@ -6,8 +6,10 @@ const CartCard = ({ title, imageUrl, rating, prize }) => {
       <img
         src={imageUrl}
         alt={title}
-        className="aspect-[16/9] w-full rounded-md md:aspect-auto md:h-[300px] lg:h-[200px]"
+        className="aspect-[16/9] w-full rounded-md md:aspect-auto md:h-[300px] lg:h-[200px] p-5"
+
       />
+      
       <div className="p-4">
         <h1 className="inline-flex items-center text-lg font-semibold">
           {title}

@@ -39,6 +39,8 @@ from sklearn.decomposition import TruncatedSVD
 import numpy as np
 from decimal import Decimal
 from .serializers import CartItemSerializer
+from django.conf import settings
+import razorpay
 
 logger = logging.getLogger(__name__)
 
@@ -468,3 +470,45 @@ class CartDetailsView(APIView):
         except Exception as e:
             # Handle exceptions and return an error response
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+@csrf_exempt
+def initiate_payment(request):
+    try:
+        data = json.loads(request.body)
+        amount = int(data['amount']) * 100  # Amount in paise
+        print(amount)
+        currency = 'INR'
+        order = client.order.create({'amount': amount, 'currency': currency, 'payment_capture': '1'})
+        print(order)
+        return JsonResponse({'order_id': order['id']})
+    except json.decoder.JSONDecodeError as e:
+        # Handle JSON decoding error
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+
+def handle_payment_callback(request):
+    if request.method == 'POST':
+        # Handle payment callback from Razorpay
+        data = request.POST.dict()
+        razorpay_payment_id = data['razorpay_payment_id']
+        razorpay_order_id = data['razorpay_order_id']
+        signature = data['razorpay_signature']
+
+        # Verify the signature to ensure that the callback is from Razorpay
+        # Note: Replace 'YOUR_RAZORPAY_KEY_SECRET' with your actual Razorpay secret key
+        expected_signature = razorpay.utils.generate_signature(razorpay_order_id + '|' + razorpay_payment_id, 'SwdEW8CuSL2ulgvBSlvElvfh')
+        if signature == expected_signature:
+            # Payment is valid, update your database with the payment status
+            # For example, you can update the order status to 'paid'
+            # Redirect user to appropriate page (success or failure)
+            return Response('Payment success!')
+        else:
+            # Signature verification failed, payment may be tampered with
+            # Handle this case accordingly (e.g., log the incident, mark the order as suspicious, etc.)
+            return Response('Payment failed due to invalid signature.')
+    else:
+        # Invalid HTTP method (only POST requests are expected for payment callback)
+        return Response(status=405)
