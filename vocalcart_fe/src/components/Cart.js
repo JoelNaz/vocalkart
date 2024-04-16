@@ -51,7 +51,7 @@ const Cart = () => {
             <CartCard
               key={index}
               title={item.title}
-              imageUrl={item.image_url}
+              imageUrl={item.image_src}
               prize={item.price}
               rating={item.rating}
             />

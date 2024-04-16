@@ -472,7 +472,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
           const selectedItem = searchResults[index];
           setSelectedItem(selectedItem);
           // Send the selected item to the backend to add to the cart
-          addToCart(selectedItem);
+          //addToCart(selectedItem);
           // Reset the transcript after processing the command
           setTranscript('');
           // Stop listening after processing the command
