@@ -271,6 +271,107 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
     return () => clearTimeout(timeoutId);
   }, [transcript, searchInitiated]);
 
+  
+
+
+  useEffect(() => {
+    let timeoutId;
+    
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('yah bhaga')) {
+      // Clear previous timeout if exists
+      clearTimeout(timeoutId);
+  
+      // Set a timeout to wait for additional speech input
+      timeoutId = setTimeout(() => {
+        const searchQueryCommand = /yah bhaga\s(.+)/i;
+        const match = transcript.match(searchQueryCommand);
+        if (match && !searchInitiated) {
+          const query = match[1].trim();
+          // Set searchInitiated to true to prevent further search calls
+          setSearchInitiated(true);
+          // Handle the search query (e.g., send a request to your backend)
+          handleSearch(query);
+          
+          // Reset the transcript after processing the command
+          setTranscript('');
+  
+          // Stop listening after processing the command
+          setListening(false);
+        }
+      }, 2000); // Adjust the timeout duration as needed
+    }
+  
+    // Clean up the timeout on component unmount or when transcript changes
+    return () => clearTimeout(timeoutId);
+  }, [transcript, searchInitiated]);
+
+  useEffect(() => {
+    let timeoutId;
+    
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('hey anveshi ki')) {
+      // Clear previous timeout if exists
+      clearTimeout(timeoutId);
+  
+      // Set a timeout to wait for additional speech input
+      timeoutId = setTimeout(() => {
+        const searchQueryCommand = /hey anveshi ki\s(.+)/i;
+        const match = transcript.match(searchQueryCommand);
+        if (match && !searchInitiated) {
+          const query = match[1].trim();
+          // Set searchInitiated to true to prevent further search calls
+          setSearchInitiated(true);
+          // Handle the search query (e.g., send a request to your backend)
+          handleSearch(query);
+          
+          // Reset the transcript after processing the command
+          setTranscript('');
+  
+          // Stop listening after processing the command
+          setListening(false);
+        }
+      }, 2000); // Adjust the timeout duration as needed
+    }
+  
+    // Clean up the timeout on component unmount or when transcript changes
+    return () => clearTimeout(timeoutId);
+  }, [transcript, searchInitiated]);
+
+
+
+  useEffect(() => {
+    let timeoutId;
+    
+    // Start processing voice commands only after the trigger phrase
+    if (transcript.toLowerCase().includes('yah dhundho')) {
+      // Clear previous timeout if exists
+      clearTimeout(timeoutId);
+  
+      // Set a timeout to wait for additional speech input
+      timeoutId = setTimeout(() => {
+        const searchQueryCommand = /yah dhundho\s(.+)/i;
+        const match = transcript.match(searchQueryCommand);
+        if (match && !searchInitiated) {
+          const query = match[1].trim();
+          // Set searchInitiated to true to prevent further search calls
+          setSearchInitiated(true);
+          // Handle the search query (e.g., send a request to your backend)
+          handleSearch(query);
+          
+          // Reset the transcript after processing the command
+          setTranscript('');
+  
+          // Stop listening after processing the command
+          setListening(false);
+        }
+      }, 2000); // Adjust the timeout duration as needed
+    }
+  
+    // Clean up the timeout on component unmount or when transcript changes
+    return () => clearTimeout(timeoutId);
+  }, [transcript, searchInitiated]);
+
   useEffect(() => {
     // Start processing voice commands only after the trigger phrase
     console.log('Transcript:', transcript);
