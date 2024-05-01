@@ -652,16 +652,16 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         let selectedItem;
   
         // Check filtered results first
-        if (filteredResults.length > 0 && index >= 0 && index < filteredResults.length) {
-          selectedItem = filteredResults[index];
+        if (filteredResults.length > 0 && index > 0 && index <= filteredResults.length) {
+          selectedItem = filteredResults[index - 1];
         }
         // If no filtered results, check search results
-        else if (searchResults.length > 0 && index >= 0 && index < searchResults.length) {
-          selectedItem = searchResults[index];
+        else if (searchResults.length > 0 && index > 0 && index <= searchResults.length) {
+          selectedItem = searchResults[index - 1];
         }
         // If no search results, check sorted recommendations
-        else if (sortedRecommendations.length > 0 && index >= 0 && index < sortedRecommendations.flat().length) {
-          selectedItem = sortedRecommendations.flat()[index];
+        else if (sortedRecommendations.length > 0 && index > 0 && index <= sortedRecommendations.flat().length) {
+          selectedItem = sortedRecommendations.flat()[index - 1];
         }
   
         if (selectedItem) {

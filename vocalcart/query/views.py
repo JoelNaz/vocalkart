@@ -534,8 +534,9 @@ def handle_payment_callback(request):
 @csrf_exempt
 def delete_item(request):
     if request.method == 'POST':
-        email = request.POST.get('email', None)
-        title = request.POST.get('title', None)
+        data = json.loads(request.body.decode('utf-8'))
+        email = data.get('email', None)
+        title = data.get('title', None)
 
         if email is None or title is None:
             return JsonResponse({'message': 'Email and title are required.'}, status=400)
@@ -549,3 +550,5 @@ def delete_item(request):
             return JsonResponse({'message': 'Item not found.'}, status=404)
         except Exception as e:
             return JsonResponse({'message': str(e)}, status=500)
+        
+        
