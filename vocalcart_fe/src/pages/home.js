@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import handleFilter from '../components/VoiceCommands';
+
+
 //import handleVoiceCommand from '../components/VoiceCommands';
 
 axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -27,6 +29,7 @@ const Home = () => {
   const [filteredResults, setFilteredResults] = useState([]);
   const [originalResultsShown, setOriginalResultsShown] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [logoutCommandProcessed, setLogoutCommandProcessed] = useState(false);
   
   const [addCart, setAddCart] = useState(false);
   const navigate = useNavigate();
@@ -62,6 +65,78 @@ const Home = () => {
   
     fetchUserDetails();
   }, []);
+
+
+  const handleLogout = async () => {
+    try {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            console.error('No token found. User may not be authenticated.');
+            return;
+        }
+
+        const response = await axios.post('http://127.0.0.1:8000/query/logout/', { token });
+        console.log(response.data);
+        localStorage.removeItem('token');
+        console.log('Logout successful!');
+        navigate('/')
+        toast.success("Logout successfully!");
+        
+        // Redirect to the login page or handle navigation as needed
+    } catch (error) {
+        console.error('Error during logout:', error.message);
+        toast.error("An error occurred during sign-in. Please try again.");
+        // Handle logout error
+    }
+};
+
+
+
+
+
+  const handleLoginCommand = () => {
+    navigate('/login')
+    setTranscript('');
+    setListening(false);
+  };
+  
+  const handleRegisterCommand = () => {
+    navigate('/register')
+    setTranscript('');
+    setListening(false);
+  };
+  
+  const handleLogoutCommand = () => {
+    // Implement your logout logic here
+    handleLogout();
+    setTranscript('');
+    setListening(false);
+  };
+
+  useEffect(() => {
+    const normalizedTranscript = transcript.toLowerCase();
+  
+    if (normalizedTranscript.includes('vocal login')) {
+      handleLoginCommand();
+    } else if (normalizedTranscript.includes('vocal register')) {
+      handleRegisterCommand();
+    } else if (normalizedTranscript.includes('vocal log out') && !logoutCommandProcessed) {
+      handleLogoutCommand();
+      setLogoutCommandProcessed(true); // Set the flag to true after processing the logout command
+    }
+  }, [transcript, logoutCommandProcessed]);
+
+
+
+
+
+
+
+
+
+
+
 
   const handleSearch = async (query) => {
     if (!query) {
@@ -561,27 +636,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
     console.log('Sorted Recommendations:', sortedRecommendations);
   }, [sortedRecommendations]);
   
-  useEffect(() => {
-    if ( transcript.toLowerCase().includes('select result')) {
-      // Extract the index from the transcript (assuming it contains a number)
-      // setAddCart(true)
-      const indexMatch = transcript.match(/\d+/);
-      console.log('Index Match:', indexMatch);
-      if (indexMatch && searchResults.length > 0) {
-        const index = parseInt(indexMatch[0], 10);
-        if (index >= 0 && index < searchResults.length) {
-          const selectedItem = searchResults[index];
-          setSelectedItem(selectedItem);
-          // Send the selected item to the backend to add to the cart
-          //addToCart(selectedItem);
-          // Reset the transcript after processing the command
-          setTranscript('');
-          // Stop listening after processing the command
-          setListening(false);
-        }
-      }
-    }
-  }, [transcript, searchResults]);
+  
 
 
  
@@ -590,12 +645,36 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
 
   
   useEffect(() => {
-    if (transcript.toLowerCase().includes('select item') && !selectedItem) {
-      const indexMatch = transcript.match(/\d+/);
-      if (indexMatch && searchResults.length > 0) {
-        const index = parseInt(indexMatch[0], 10);
-        if (index >= 0 && index < searchResults.length) {
-          const selectedItem = searchResults[index];
+    if (transcript.toLowerCase().includes('select item number') && !selectedItem) {
+      const indexMatch = transcript.match(/\d+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\b/i);
+      if (indexMatch) {
+        let index;
+        if (!isNaN(parseInt(indexMatch[0], 10))) {
+          // Handle numeric index
+          index = parseInt(indexMatch[0], 10);
+        } else {
+          // Handle word index
+          const wordIndex = indexMatch[0].toLowerCase();
+          const wordIndices = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+          index = wordIndices.indexOf(wordIndex) + 1;
+        }
+  
+        let selectedItem;
+  
+        // Check filtered results first
+        if (filteredResults.length > 0 && index > 0 && index <= filteredResults.length) {
+          selectedItem = filteredResults[index - 1];
+        }
+        // If no filtered results, check search results
+        else if (searchResults.length > 0 && index > 0 && index <= searchResults.length) {
+          selectedItem = searchResults[index - 1];
+        }
+        // If no search results, check sorted recommendations
+        else if (sortedRecommendations.length > 0 && index > 0 && index <= sortedRecommendations.flat().length) {
+          selectedItem = sortedRecommendations.flat()[index - 1];
+        }
+  
+        if (selectedItem) {
           setSelectedItem(selectedItem);
           // Send the selected item to the backend to add to the cart
           addToCart(selectedItem);
@@ -606,7 +685,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         }
       }
     }
-  }, [transcript, searchResults, selectedItem]);
+  }, [transcript, searchResults, filteredResults, sortedRecommendations, selectedItem]);
 
 
   const addToCart = async (selectedItem) => {

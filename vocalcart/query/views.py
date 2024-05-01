@@ -301,10 +301,25 @@ class RecommendationView(APIView):
             svd_matrix = svd.fit_transform(tfidf_matrix)
             print("SVD Matrix Shape:", svd_matrix.shape)
 
+            
             # Get recommendations based on the SVD-transformed matrix
             query_index = len(past_queries) - 1  # Index of the latest query
             similar_queries_indices = np.argsort(svd_matrix[query_index])[-3:-1]  # Get indices of most similar queries
-            recommendations = [past_queries[i] for i in similar_queries_indices]
+
+            # Retrieve the actual queries for the most similar indices
+            similar_queries = [past_queries[i] for i in similar_queries_indices]
+
+            # Initialize the recommendations set
+            recommendations_set = set()
+
+            # Loop through similar queries to find unique recommendations
+            for query in similar_queries:
+                if query != past_queries[-1]:  # Exclude the current query
+                    recommendations_set.add(query)
+
+            # Convert the set to a list
+            recommendations = list(recommendations_set)
+
             print("Recommendations:", recommendations)
 
             amazon_results = self.search_amazon(recommendations)
@@ -530,3 +545,28 @@ def handle_payment_callback(request):
             return JsonResponse({'error': 'Invalid signature. Payment failed.'}, status=400)
     else:
         return JsonResponse({'error': 'Invalid HTTP method. Only POST requests are allowed.'}, status=405)
+    
+    
+    
+    
+@csrf_exempt
+def delete_item(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        email = data.get('email', None)
+        title = data.get('title', None)
+
+        if email is None or title is None:
+            return JsonResponse({'message': 'Email and title are required.'}, status=400)
+
+        try:
+            # Find the CartItem associated with the provided email and title
+            cart_item = CartItem.objects.get(user__email=email, title=title)
+            cart_item.delete()
+            return JsonResponse({'message': 'Item deleted successfully.'}, status=200)
+        except CartItem.DoesNotExist:
+            return JsonResponse({'message': 'Item not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+        
+        

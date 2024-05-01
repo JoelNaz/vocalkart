@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import CheckAuthView, UserRegister, UserDetails, UserLogin, LogoutView, SearchAmazonView, SearchFlipkartView,RecommendationView,AddToCartView
-from .views import CartDetailsView
+from .views import CartDetailsView, delete_item
 from . import views
 urlpatterns = [
     path('register/', UserRegister.as_view(), name='register'),
@@ -17,4 +17,6 @@ urlpatterns = [
     path('initiate_payment/', views.initiate_payment, name='initiate_payment'),
     path('payment_callback/', views.handle_payment_callback, name='payment_callback'),
 
+    path('payment_success/', views.handle_payment_callback, name='payment_success'),
+    path('delete_item/', views.delete_item, name='delete_item'),
 ]
