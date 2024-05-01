@@ -15,5 +15,6 @@ urlpatterns = [
     path('addtocart/', AddToCartView.as_view(), name='add_to_cart'),
     path('cartdetails/', CartDetailsView.as_view(), name='cart-details'),
     path('initiate_payment/', views.initiate_payment, name='initiate_payment'),
-    path('payment_success/', views.handle_payment_callback, name='payment_success'),
+    path('payment_callback/', views.handle_payment_callback, name='payment_callback'),
+
 ]

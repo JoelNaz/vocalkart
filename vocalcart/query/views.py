@@ -78,10 +78,7 @@ class UserLogin(APIView):
             return Response({'token': token}, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        
-        
-    
+
 class LogoutView(APIView):
     permission_classes = [AllowAny]
 
@@ -472,21 +469,43 @@ class CartDetailsView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
+
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 @csrf_exempt
 def initiate_payment(request):
     try:
-        data = json.loads(request.body)
-        amount = int(data['amount']) * 100  # Amount in paise
-        print(amount)
-        currency = 'INR'
-        order = client.order.create({'amount': amount, 'currency': currency, 'payment_capture': '1'})
-        print(order)
-        return JsonResponse({'order_id': order['id']})
-    except json.decoder.JSONDecodeError as e:
-        # Handle JSON decoding error
-        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        data = json.loads(request.body) 
+        current_user_email = data.get('current_user_email') # Retrieve user email from request data
+        print(current_user_email)
+        if current_user_email:
+            # Retrieve cart items based on the provided user email
+            cart_items = CartItem.objects.filter(user__email=current_user_email)
+            # Calculate total amount
+            total_amount = sum(item.price for item in cart_items) 
+
+            amount=total_amount * 100 # Convert amount to paise
+            print("Total Amount in paise:", total_amount)
+            currency = 'INR'
+
+            # Concatenate titles of all items for description
+            description = ', '.join(item.title for item in cart_items)
+            print("Description:", description)
+
+            order = client.order.create({'amount': int(amount), 'currency': currency, 'payment_capture': '1'})
+            # Ensure that the order object contains the 'id' field for the order ID
+            if 'id' in order:
+                print("Order ID:", order['id']) 
+                return JsonResponse({'order_id': order['id'], 'amount': total_amount})
+            else:
+                print("Order ID not found in the response from Razorpay")
+                return JsonResponse({'error': 'Order ID not found in the response from Razorpay'}, status=500)
+        else:
+            return JsonResponse({'error': 'Current user email not provided in the request.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 
 
 def handle_payment_callback(request):
@@ -508,7 +527,6 @@ def handle_payment_callback(request):
         else:
             # Signature verification failed, payment may be tampered with
             # Handle this case accordingly (e.g., log the incident, mark the order as suspicious, etc.)
-            return Response('Payment failed due to invalid signature.')
+            return JsonResponse({'error': 'Invalid signature. Payment failed.'}, status=400)
     else:
-        # Invalid HTTP method (only POST requests are expected for payment callback)
-        return Response(status=405)
+        return JsonResponse({'error': 'Invalid HTTP method. Only POST requests are allowed.'}, status=405)
