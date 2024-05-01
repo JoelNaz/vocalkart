@@ -645,10 +645,20 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
 
   
   useEffect(() => {
-    if (transcript.toLowerCase().includes('select item') && !selectedItem) {
-      const indexMatch = transcript.match(/\d+/);
+    if (transcript.toLowerCase().includes('select item number') && !selectedItem) {
+      const indexMatch = transcript.match(/\d+|\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\b/i);
       if (indexMatch) {
-        const index = parseInt(indexMatch[0], 10);
+        let index;
+        if (!isNaN(parseInt(indexMatch[0], 10))) {
+          // Handle numeric index
+          index = parseInt(indexMatch[0], 10);
+        } else {
+          // Handle word index
+          const wordIndex = indexMatch[0].toLowerCase();
+          const wordIndices = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+          index = wordIndices.indexOf(wordIndex) + 1;
+        }
+  
         let selectedItem;
   
         // Check filtered results first

@@ -85,7 +85,7 @@ const Cart = () => {
   
     // Start processing voice commands only after the trigger phrase
     if (
-      transcript.toLowerCase().includes('delete item') || 
+      transcript.toLowerCase().includes('delete item number') || 
       transcript.toLowerCase().includes('back to homepage') || 
       transcript.toLowerCase().includes('proceed to checkout')
     ) {
@@ -101,8 +101,8 @@ const Cart = () => {
   }, [transcript]); // Trigger the effect whenever the transcript changes
   
   const handleCommand = (command) => {
-    if (command.startsWith('delete item')) {
-      const indexString = command.replace('delete item', '').trim();
+    if (command.startsWith('delete item number')) {
+      const indexString = command.replace('delete item number', '').trim();
       const index = parseInt(indexString);
       if (!isNaN(index) && index >= 1 && index <= cartItems.length) {
         deleteItem(index);
