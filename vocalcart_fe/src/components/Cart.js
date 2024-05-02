@@ -181,13 +181,13 @@ const Cart = () => {
           <div className="flex lg:justify-center">
             <div className="flex w-full max-w-md flex-col space-y-4">
               <div
-              className=" w-3/4 rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm font-semibold text-green-600"
+              className=" w-3/4 rounded-md border border-black bg-transparent px-3 py-2 text-sm font-semibold text-black"
               > 
                 <p className="text-lg font-semibold p-1 ml-7">Total Items: <span className="text-lg font-semibold">{cartItems.length}</span></p>
                 
               </div>
               <div
-              className="w-3/4 rounded-md bg-red-200 px-3 py-2 text-sm font-semibold text-red-500"
+              className="w-3/4 rounded-md border border-green-600 px-3 py-2 text-sm font-semibold text-green-500"
               >
                 <p className="text-lg font-semibold p-1 ml-7">Total Amount:  <span className="text-lg font-semibold ">{calculateTotalPrice()}</span></p>
               </div>
