@@ -80,13 +80,17 @@ const Home = () => {
         console.log(response.data);
         localStorage.removeItem('token');
         console.log('Logout successful!');
-        navigate('/')
-        toast.success("Logout successfully!");
         
-        // Redirect to the login page or handle navigation as needed
+        // Update currentUser state to null
+        setCurrentUser(null);
+        
+        toast.success("Logout successfully!");
+        navigate('/');
+        
+        // Redirect to the home page or handle navigation as needed
     } catch (error) {
         console.error('Error during logout:', error.message);
-        toast.error("An error occurred during sign-in. Please try again.");
+        toast.error("An error occurred during sign-out. Please try again.");
         // Handle logout error
     }
 };
@@ -109,10 +113,17 @@ const Home = () => {
   
   const handleLogoutCommand = () => {
     // Implement your logout logic here
-    handleLogout();
-    setTranscript('');
-    setListening(false);
-  };
+    handleLogout()
+        .then(() => {
+            setTranscript('');
+            setListening(false);
+            window.location.reload(); // Reload the page after logout
+        })
+        .catch((error) => {
+            console.error('Error during logout:', error.message);
+            toast.error("An error occurred during sign-out. Please try again.");
+        });
+};
 
   useEffect(() => {
     const normalizedTranscript = transcript.toLowerCase();
