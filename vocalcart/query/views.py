@@ -504,8 +504,8 @@ def initiate_payment(request):
             currency = 'INR'
 
             # Concatenate titles of all items for description
-            description = ', '.join(item.title for item in cart_items)
-            print("Description:", description)
+            # description = ', '.join(item.title for item in cart_items)
+            # print("Description:", description)
 
             order = client.order.create({'amount': int(amount), 'currency': currency, 'payment_capture': '1'})
             # Ensure that the order object contains the 'id' field for the order ID
