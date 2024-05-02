@@ -10,7 +10,6 @@ const PaymentComponent = () => {
     const [currentUserEmail, setCurrentUserEmail] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [razorpayOrderId, setRazorpayOrderId] = useState('');
-    var Order;
 
     useEffect(() => {
         const fetchCartItems = async () => {
@@ -51,15 +50,9 @@ const PaymentComponent = () => {
             );
             const { data } = response;
             setOrderId(data.order_id);
-            // console.log('data:', data);
-            // console.log('data.amount:', data.amount);
-            Order = data.order_id;
-            // console.log('Order:', Order);
             setAmount(data.amount);
             setRazorpayOrderId(data.order_id);
-
-            // Initialize Razorpay after orderId is set
-            // initializeRazorpay();
+            loadRazorpayScript(data.order_id); // Pass the order ID to the script loading function
         } catch (error) {
             console.error('Error initiating payment:', error);
             setError('Error initiating payment');
@@ -68,62 +61,64 @@ const PaymentComponent = () => {
         }
     };
 
-    useEffect(() => {
-        const loadRazorpayScript = () => {
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.async = true;
-            script.onload = initializeRazorpay; // Call initializeRazorpay when the script is loaded
-            script.onerror = handleScriptError;
-            document.body.appendChild(script);
-        };
-        const initializeRazorpay = () => {
-            if (!window.Razorpay) {
-                console.error('Razorpay script loaded, but window.Razorpay is not available ');
-                console.log('Order:', orderId);
-                return;
+    const loadRazorpayScript = (orderId) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = () => handleScriptLoad(orderId);
+        script.onerror = handleScriptError;
+        document.body.appendChild(script);
+    };
+
+    const handleScriptLoad = (orderId) => {
+        if (window.Razorpay) {
+            initializeRazorpay(orderId);
+        } else {
+            console.error('Razorpay script loaded, but window.Razorpay is not available');
+        }
+    };
+
+    const handleScriptError = (event) => {
+        console.error('Error loading Razorpay script:', event);
+    };
+
+    const initializeRazorpay = (orderId) => {
+        if (!window.Razorpay) {
+            console.error('Razorpay script loaded, but window.Razorpay is not available');
+            return;
+        }
+
+        // Initialize Razorpay with the correct options
+        const options = {
+            key: "rzp_test_WWKOoelBNSKI67",
+            currency: "INR",
+            name: "VocalCart",
+            description: "Test Transaction",
+            order_id: orderId,
+            prefill: {
+                name: "Nimish Patil",
+                email: "patilnr27@gmail.com",
+                contact: "9137659395"
+            },
+            notes: {
+                address: "Razorpay Corporate Office"
+            },
+            theme: {
+                color: "#3399cc"
             }
-        
-            // Initialize Razorpay with the correct options
-            const options = {
-                key: "rzp_test_WWKOoelBNSKI67",
-                currency: "INR",
-                name: "VocalCart",
-                description: "Test Transaction",
-                order_id: orderId,
-                prefill: {
-                    name: "Nimish Patil",
-                    email: "patilnr27@gmail.com",
-                    contact: "9137659395"
-                },
-                notes: {
-                    address: "Razorpay Corporate Office"
-                },
-                theme: {
-                    color: "#3399cc"
-                }
-            };
-        
-            const rzp1 = new window.Razorpay(options);
-        
-            rzp1.on('payment.failed', function (response) {
-                // Handle payment failed
-            });
-        
-            document.getElementById('rzp-button1').addEventListener('click', function (e) {
-                rzp1.open();
-                e.preventDefault();
-            });
         };
-        
-        const handleScriptError = (event) => {
-            console.error('Error loading Razorpay script:', event);
-        };
-        
-        loadRazorpayScript();
-    }, []);
-    
-    
+
+        const rzp1 = new window.Razorpay(options);
+
+        rzp1.on('payment.failed', function (response) {
+            // Handle payment failed
+        });
+
+        document.getElementById('rzp-button1').addEventListener('click', function (e) {
+            rzp1.open();
+            e.preventDefault();
+        });
+    };
 
     return (
         <div>
@@ -131,9 +126,9 @@ const PaymentComponent = () => {
             <button id='rzp-button1' onClick={initiatePayment} disabled={isLoading}>
                 Initiate Payment
             </button>
-            {orderId && (
+            {razorpayOrderId && (
                 <div>
-                    <p>Order ID: {orderId}</p>
+                    <p>Order ID: {razorpayOrderId}</p>
                 </div>
             )}
             {error && <p>Error: {error}</p>}
