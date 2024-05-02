@@ -121,7 +121,7 @@ const Cart = () => {
   };
   
   const proceedToCheckout = () => {
-    navigate('/checkout');
+    navigate('/payment');
     // Implement logic to proceed to checkout here
   };
 
@@ -146,7 +146,7 @@ const Cart = () => {
       <div className="bg-gray-100 p-10 rounded-md">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div className="w-full md:w-2/3 lg:w-1/2">
-          <h2 className="text-4xl font-bold text-black ml-10">Cart</h2>
+          <h2 className="text-4xl font-bold text-black text-center">Cart</h2>
           <div className=' mt-20'>
           <div className=" flex items-center justify-center gap-x-2">
           {/* Buttons for Speech Recognition */}
@@ -214,7 +214,7 @@ const Cart = () => {
       </div>
     ) : (
       // If user is not logged in, show login message
-      <p className="text-center text-lg">Please {""}
+      <p className="text-center text-lg mt-2">Please {""}
         <Link
           to="/login"
           className="font-semibold text-blue-700 transition-all duration-200 hover:underline"

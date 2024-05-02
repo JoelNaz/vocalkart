@@ -14,10 +14,10 @@ const CartCard = ({ title, imageUrl, rating, prize }) => {
         <h1 className="inline-flex items-center text-lg font-semibold">
           {title}
         </h1>
-                <p className="mt-3 text-sm text-gray-600">
+                <p className="mt-3 text-md text-gray-600">
                   Price: {prize}
                 </p>
-                <p className="mt-3 text-sm text-gray-600">
+                <p className="mt-3 text-md text-gray-600">
                   Rating: {rating}
                 </p>
         {/* <div className="mt-5 flex items-center space-x-2">

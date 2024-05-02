@@ -9,8 +9,6 @@ import { Toaster } from 'react-hot-toast';
 import SpinnerCircular from "./components/ui/SpinnerCircular";
 import SelectChoice from './components/selectChoice';
 import PaymentComponent from './components/PaymentComponent';
-import RazorpayPayment from './components/RazorpayPayment';
-import CheckoutPage from './components/Checkout';
 
 
 const App = () => {
@@ -27,8 +25,6 @@ const App = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/choice" element={<SelectChoice />} />
           <Route path="/payment" element={<PaymentComponent/>}/>
-          <Route path="/razor" element={<RazorpayPayment />} />
-          <Route path="/checkout" element={<CheckoutPage/>}/>
         </Routes>
     </BrowserRouterRouter>
     <Toaster />

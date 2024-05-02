@@ -753,7 +753,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   
         {/* Display filtered results if available */}
         {filteredResults.length > 0 && (
-          <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+          <div className="grid grid-cols-3 gap-4 mt-36 py-4 px-10">
             {filteredResults.map((result, index) => (
               <div key={index} className="rounded-md border bg-white p-1">
                 <img
@@ -778,7 +778,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
   
         {/* Display search results only if filtered results are not available */}
         {filteredResults.length === 0 && (
-          <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+          <div className="grid grid-cols-3 gap-4 mt-36 py-4 px-10 ">
             {searchResults.map((result, index) => (
               <div key={index} className="rounded-md border bg-white p-1">
                 <img
@@ -802,11 +802,12 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         )}
   
         {/* Display recommendations sorted by ratings */}
-        <div className="grid grid-cols-3 gap-4 mt-10 px-10">
+        <div className="grid grid-cols-3 gap-4 py-4 px-10">
           {/* Display both sorted recommendations */}
           {sortedRecommendations && sortedRecommendations.flat().length > 0 ? (
             sortedRecommendations.flat().map((recommendation, index) => (
-              <div key={index} className="rounded-md border">
+              
+              <div key={index} className="rounded-md border bg-white">
                 <img
                   src={recommendation.image_url}
                   alt={`Recommendation ${index}`}
