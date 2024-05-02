@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import CartCard from './CartCard';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
-
 import { Link } from "react-router-dom";
 
 
@@ -126,15 +125,31 @@ const Cart = () => {
     // Implement logic to proceed to checkout here
   };
 
+  const calculateTotalPrice = () => {
+    let totalPrice = 0;
+    cartItems.forEach(item => {
+      totalPrice += parseFloat(item.price);
+    });
+    const formatter = new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    });
+    return formatter.format(totalPrice);
+  };
+
   return (
-    <div className="bg-white py-16 sm:py-16">
-      <div className="mx-auto max-w-7xl px-12 lg:px-8">
-        {isLoggedIn ? (
-          <>
-        <div className="mx-auto max-w-2xl lg:mx-0">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Cart</h2>
-        </div>
-        <div className="mt-10 flex items-center justify-center gap-x-2">
+    <div className=" border-r-indigo-100 py-16 sm:py-16 ">
+  <div className="mx-auto max-w-7xl px-12 lg:px-8">
+    {isLoggedIn ? (
+      <div>
+
+      <div className="bg-gray-100 p-10 rounded-md">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="w-full md:w-2/3 lg:w-1/2">
+          <h2 className="text-4xl font-bold text-black ml-10">Cart</h2>
+          <div className=' mt-20'>
+          <div className=" flex items-center justify-center gap-x-2">
+          {/* Buttons for Speech Recognition */}
           <button
             type="button"
             onClick={() => {
@@ -160,28 +175,56 @@ const Cart = () => {
           </button>
         </div>
         <p className="text-center text-gray-600 mt-4">{transcript}</p>
-        
-          <div className="mx-auto mt-5 pl-5 grid max-w-xl grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-16 border-t border-gray-200 pt-10 sm:mt-10 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-            {cartItems.map((item, index) => (
-              <CartCard
-                key={index}
-                title={item.title}
-                imageUrl={item.image_src}
-                prize={item.price}
-                rating={item.rating}
-              />
-            ))}
-          </div></>
-        ) : (
-          <p className="text-center text-lg">Please <Link
-                to="/login"
-                className="font-semibold text-blue-700 transition-all duration-200 hover:underline"
+        </div>
+        </div>
+        <div className="mt-10 w-full md:w-2/3 lg:mt-0 lg:w-1/2">
+          <div className="flex lg:justify-center">
+            <div className="flex w-full max-w-md flex-col space-y-4">
+              <div
+              className=" w-3/4 rounded-md border border-black/30 bg-transparent px-3 py-2 text-sm font-semibold text-green-600"
+              > 
+                <p className="text-lg font-semibold p-1 ml-7">Total Items: <span className="text-lg font-semibold">{cartItems.length}</span></p>
+                
+              </div>
+              <div
+              className="w-3/4 rounded-md bg-red-200 px-3 py-2 text-sm font-semibold text-red-500"
               >
-                login
-              </Link> to view your cart.</p>
-        )}
+                <p className="text-lg font-semibold p-1 ml-7">Total Amount:  <span className="text-lg font-semibold ">{calculateTotalPrice()}</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+        
+        
+        {/* Display cart items */}
+        <div className="mx-auto mt-5 pl-5 grid max-w-xl grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-16 border-t border-gray-200 pt-10 sm:mt-10 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3 bg-sky-100 rounded-md p-5">
+          {cartItems.map((item, index) => (
+            <CartCard
+              key={index}
+              title={item.title}
+              imageUrl={item.image_src}
+              prize={item.price}
+              rating={item.rating}
+            />
+          ))}
+        </div>
+      </div>
+    ) : (
+      // If user is not logged in, show login message
+      <p className="text-center text-lg">Please {""}
+        <Link
+          to="/login"
+          className="font-semibold text-blue-700 transition-all duration-200 hover:underline"
+        >
+          login
+        </Link> to view your cart.
+      </p>
+    )}
+  </div>
+</div>
   );
 };
 

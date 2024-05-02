@@ -2,7 +2,7 @@ import React from "react";
 
 const CartCard = ({ title, imageUrl, rating, prize }) => {
   return (
-    <div className="rounded-md border w-10/12 ">
+    <div className="rounded-md border w-10/12 bg-white">
       <img
         src={imageUrl}
         alt={title}
