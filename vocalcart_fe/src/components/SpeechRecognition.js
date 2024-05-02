@@ -42,7 +42,7 @@ const ContinuousSpeechRecognition = ({ onSearch, onStop, onReset, setTranscript 
   return (
 
     <div>
-      <h1 className='text-xl'>Continuous Speech Recognition</h1>
+      <h1 className='text-xl'></h1>
       <p>Transcript: {transcript}</p>
       {/* <button onClick={isListening ? handleStopListening : handleStartListening}>
         {isListening ? 'Stop' : 'Start'}

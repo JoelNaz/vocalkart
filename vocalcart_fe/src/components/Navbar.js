@@ -110,7 +110,7 @@ const Navbar = () => {
                                 <li key={item.name}>
                                     <a
                                         href={item.href}
-                                        className="text-sm font-semibold text-white hover:text-blue-600"
+                                        className="text-sm font-semibold text-black hover:text-blue-600"
                                     >
                                         {item.name}
                                     </a>
@@ -131,13 +131,13 @@ const Navbar = () => {
                             <>
                                 <button
                                     type="button"
-                                    className="rounded-md bg-transparent px-3 py-2 text-sm  text-white  hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                                    className="rounded-md bg-transparent px-3 py-2 text-sm  text-black  hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                                 >
                                     <Link to="/register">Sign Up</Link>
                                 </button>
                                 <button
                                     type="button"
-                                    className="rounded-md border border-black px-3 py-2 text-sm  text-white hover:bg-white/10 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                                    className="rounded-md border border-black px-3 py-2 text-sm  text-black hover:bg-white/10 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                                 >
                                     <Link to="/login">Log In</Link>
                                 </button>

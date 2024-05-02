@@ -136,6 +136,10 @@ const Home = () => {
       handleLogoutCommand();
       setLogoutCommandProcessed(true); // Set the flag to true after processing the logout command
     }
+    else if (normalizedTranscript.includes('vocal logout') && !logoutCommandProcessed) {
+      handleLogoutCommand();
+      setLogoutCommandProcessed(true); // Set the flag to true after processing the logout command
+    }
   }, [transcript, logoutCommandProcessed]);
 
 
@@ -632,7 +636,8 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
         navigate('/cart');
       } else {
         //toast.error('User not authenticated'); // Display toast error alert
-        setToken(localStorage.getItem('token'));
+        //setToken(localStorage.getItem('token'));
+        navigate('/cart');
       }
   
       setTranscript('');
@@ -730,7 +735,7 @@ const handleVoiceCommand = async (command, currentUserEmail) => {
 
 
   return (
-    <div className="relative w-full h-screen bg-cover bg-center opacity-85" style={{backgroundImage: `url('https://images.unsplash.com/photo-1605902711622-cfb43c4437b5?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`}}>
+    <div className="relative w-full h-screen bg-cover bg-center opacity-85" style={{backgroundImage: `url('https://images.unsplash.com/photo-1470790376778-a9fbc86d70e2?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`}}>
       <Navbar />
       <div className="relative isolate z-0 bg-transparent px-6 pt-10 lg:px-8">
         <div className="relative mx-auto max-w-2xl py-24 mt-10 bg-white bg-opacity-90 rounded-xl">
